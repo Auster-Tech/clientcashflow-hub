@@ -5,10 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserRole } from "@/types";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { DateRange } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowDown, ArrowUp, CalendarRange, Download } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface CashflowProps {
   userRole: UserRole;
@@ -32,6 +35,7 @@ const mockData = [
 
 const Cashflow = ({ userRole }: CashflowProps) => {
   const [period, setPeriod] = useState("yearly");
+  const [date, setDate] = useState<Date | undefined>(new Date());
   
   return (
     <DashboardLayout userRole={userRole}>
@@ -45,10 +49,23 @@ const Cashflow = ({ userRole }: CashflowProps) => {
 
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-8 gap-1">
-              <CalendarRange className="h-4 w-4" />
-              <span>Filter</span>
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1">
+                  <CalendarRange className="h-4 w-4" />
+                  <span>Filter</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
             
             <Select defaultValue={period} onValueChange={setPeriod}>
               <SelectTrigger className="h-8 w-[150px]">

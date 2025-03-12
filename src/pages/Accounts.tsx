@@ -34,7 +34,7 @@ import {
   CircleDollarSign, 
   Search 
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data for accounts
 const mockAccounts = [
@@ -125,17 +125,17 @@ const Accounts = ({ userRole }: AccountsProps) => {
   const getAccountIcon = (type: string) => {
     switch (type) {
       case "checking":
-        return <CreditCard className="h-5 w-5" />;
+        return <CreditCard size={20} />;
       case "savings":
-        return <PiggyBank className="h-5 w-5" />;
+        return <PiggyBank size={20} />;
       case "credit":
-        return <CreditCard className="h-5 w-5" />;
+        return <CreditCard size={20} />;
       case "investment":
-        return <CircleDollarSign className="h-5 w-5" />;
+        return <CircleDollarSign size={20} />;
       case "cash":
-        return <Banknote className="h-5 w-5" />;
+        return <Banknote size={20} />;
       default:
-        return <Wallet className="h-5 w-5" />;
+        return <Wallet size={20} />;
     }
   };
 

@@ -44,7 +44,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data for transactions
 const mockTransactions = [
@@ -118,6 +118,39 @@ const mockTransactions = [
     account: "Business Checking",
     status: "completed",
   },
+];
+
+// Mock data for accounts, categories, cost centers and partners
+const mockAccounts = [
+  { id: "1", name: "Business Checking", type: "checking" },
+  { id: "2", name: "Business Savings", type: "savings" },
+  { id: "3", name: "Business Credit Card", type: "credit" },
+  { id: "4", name: "Petty Cash", type: "cash" }
+];
+
+const mockCategories = [
+  { id: "1", name: "Office Supplies", type: "expense" },
+  { id: "2", name: "Rent", type: "expense" },
+  { id: "3", name: "Utilities", type: "expense" },
+  { id: "4", name: "Marketing", type: "expense" },
+  { id: "5", name: "Software", type: "expense" },
+  { id: "6", name: "Services", type: "income" },
+  { id: "7", name: "Retainer", type: "income" },
+  { id: "8", name: "Other", type: "other" }
+];
+
+const mockCostCenters = [
+  { id: "1", name: "Administrative" },
+  { id: "2", name: "Marketing" },
+  { id: "3", name: "Operations" },
+  { id: "4", name: "Sales" }
+];
+
+const mockPartners = [
+  { id: "1", name: "ABC Corp", type: "company" },
+  { id: "2", name: "XYZ Ltd", type: "company" },
+  { id: "3", name: "John Smith", type: "person" },
+  { id: "4", name: "Office Space Inc", type: "company" }
 ];
 
 interface TransactionsProps {
@@ -357,6 +390,10 @@ const Transactions = ({ userRole }: TransactionsProps) => {
                   });
                 }}
                 onCancel={() => setIsAddTransactionOpen(false)}
+                accounts={mockAccounts}
+                categories={mockCategories}
+                costCenters={mockCostCenters}
+                partners={mockPartners}
               />
             </TabsContent>
             
