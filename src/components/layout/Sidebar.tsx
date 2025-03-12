@@ -10,9 +10,10 @@ import {
   FileText, Settings, LogOut, Building, BarChart
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { UserRole } from '@/types';
 
 type SidebarProps = {
-  role: 'accountant' | 'client';
+  role: UserRole;
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
 };
@@ -21,7 +22,7 @@ type NavItem = {
   title: string;
   href: string;
   icon: React.ElementType;
-  roles: Array<'accountant' | 'client'>;
+  roles: Array<UserRole>;
 };
 
 export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
@@ -34,7 +35,7 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
       title: 'Dashboard', 
       href: '/dashboard', 
       icon: LayoutDashboard,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Clients', 
@@ -46,49 +47,49 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
       title: 'Cashflow', 
       href: '/cashflow', 
       icon: BarChart,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Transactions', 
       href: '/transactions', 
       icon: FileSpreadsheet,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Accounts', 
       href: '/accounts', 
       icon: Landmark,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Categories', 
       href: '/categories', 
       icon: Tag,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Cost Centers', 
       href: '/cost-centers', 
       icon: FolderKanban,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Partners', 
       href: '/partners', 
       icon: Users,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Invoices', 
       href: '/invoices', 
       icon: FileText,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
       title: 'Settings', 
       href: '/settings', 
       icon: Settings,
-      roles: ['accountant', 'client'] 
+      roles: ['accountant', 'client-admin', 'client-user'] 
     },
   ];
   
@@ -96,6 +97,9 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
   const filteredNavItems = navigationItems.filter(item => 
     item.roles.includes(role)
   );
+
+  // Helper function to check if user is a client
+  const isClient = role === 'client-admin' || role === 'client-user';
 
   const handleLogout = () => {
     toast({

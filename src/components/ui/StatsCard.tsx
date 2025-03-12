@@ -1,55 +1,54 @@
 
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface StatsTrendProps {
+  value: string;
+  label?: string;
+  positive?: boolean;
+  isPositive?: boolean;
+}
 
 interface StatsCardProps {
   title: string;
   value: string | number;
+  icon: LucideIcon;
   description?: string;
-  icon?: LucideIcon;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
-  className?: string;
+  trend?: StatsTrendProps;
 }
 
-export function StatsCard({ 
-  title, 
-  value, 
-  description, 
-  icon: Icon, 
-  trend, 
-  className 
-}: StatsCardProps) {
+export function StatsCard({ title, value, icon: Icon, description, trend }: StatsCardProps) {
+  // Handle both number and string values for trend.isPositive
+  const isPositive = 
+    trend?.positive !== undefined ? trend.positive : 
+    trend?.isPositive !== undefined ? trend.isPositive : 
+    true;
+  
   return (
-    <Card className={cn("overflow-hidden transition-all duration-300 hover-lift", className)}>
+    <Card>
       <CardContent className="p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-            <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
-            {description && (
-              <p className="text-xs text-muted-foreground mt-1">{description}</p>
-            )}
-            {trend && (
-              <div className="flex items-center mt-2">
-                <span
-                  className={cn(
-                    "text-xs font-medium flex items-center",
-                    trend.isPositive ? "text-emerald-500" : "text-rose-500"
-                  )}
-                >
-                  {trend.isPositive ? "↑" : "↓"} {Math.abs(trend.value)}%
-                </span>
-                <span className="ml-1 text-xs text-muted-foreground">vs. last period</span>
-              </div>
-            )}
+        <div className="flex items-center justify-between space-y-0 pb-2">
+          <h3 className="tracking-tight text-sm font-medium">{title}</h3>
+          <div className="h-8 w-8 rounded-md bg-primary/10 p-1.5 text-primary">
+            <Icon className="h-full w-full" />
           </div>
-          {Icon && (
-            <div className="rounded-full p-2 bg-muted/50">
-              <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-bold">{value}</p>
+          {description && <p className="text-xs text-muted-foreground">{description}</p>}
+          {trend && (
+            <div className="flex items-center pt-1">
+              <span
+                className={cn(
+                  "text-xs font-medium mr-1",
+                  isPositive ? "text-green-600" : "text-red-600"
+                )}
+              >
+                {trend.value}
+              </span>
+              {trend.label && <span className="text-xs text-muted-foreground">{trend.label}</span>}
             </div>
           )}
         </div>
