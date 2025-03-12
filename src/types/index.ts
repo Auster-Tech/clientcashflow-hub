@@ -60,6 +60,17 @@ export interface Client {
   notes?: string;
 }
 
+export interface ClientCompany {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  accountantId: string;
+  fiscalYear: string;
+  industry: string;
+}
+
 export interface Document {
   id: string;
   name: string;
@@ -73,6 +84,6 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole | string;
+  role: UserRole;
   clientId?: string;
 }

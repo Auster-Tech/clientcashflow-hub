@@ -41,6 +41,9 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ userRole }: DashboardProps) => {
+  // Helper function to check if the user is a client
+  const isClient = userRole === 'client-admin' || userRole === 'client-user';
+
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-8">
@@ -256,7 +259,7 @@ const Dashboard = ({ userRole }: DashboardProps) => {
           </Card>
         )}
 
-        {userRole === 'client' && (
+        {isClient && (
           <Card className="animated-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-md font-medium">

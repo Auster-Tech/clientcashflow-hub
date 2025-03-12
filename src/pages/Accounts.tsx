@@ -33,7 +33,7 @@ import {
   Banknote, 
   CircleDollarSign, 
   Search 
-} from "lucide-react";
+} from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 // Mock data for accounts
@@ -162,7 +162,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
               style: "currency",
               currency: "USD",
             }).format(totalAssets)}
-            icon={<DollarSign className="h-4 w-4" />}
+            icon={DollarSign}
             description="Sum of all positive balances"
             trend={{ 
               value: "+5.2%", 
@@ -177,7 +177,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
               style: "currency",
               currency: "USD",
             }).format(totalLiabilities)}
-            icon={<DollarSign className="h-4 w-4" />}
+            icon={DollarSign}
             description="Sum of all negative balances"
             trend={{ 
               value: "-2.1%", 
@@ -192,7 +192,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
               style: "currency",
               currency: "USD",
             }).format(netWorth)}
-            icon={<Wallet className="h-4 w-4" />}
+            icon={Wallet}
             description="Assets minus Liabilities"
             trend={{ 
               value: "+8.4%", 

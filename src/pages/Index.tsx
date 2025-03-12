@@ -53,7 +53,7 @@ const Index = ({ onLogin }: IndexProps) => {
         <Tabs defaultValue="accountant" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="accountant">Accountant</TabsTrigger>
-            <TabsTrigger value="client">Client</TabsTrigger>
+            <TabsTrigger value="client-admin">Client</TabsTrigger>
           </TabsList>
           
           <TabsContent value="accountant">
@@ -105,7 +105,7 @@ const Index = ({ onLogin }: IndexProps) => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="client">
+          <TabsContent value="client-admin">
             <Card className="border-0 shadow-lg animated-border">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl flex items-center gap-2">
@@ -117,7 +117,7 @@ const Index = ({ onLogin }: IndexProps) => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <form onSubmit={(e) => handleSubmit(e, 'client')}>
+                <form onSubmit={(e) => handleSubmit(e, 'client-admin')}>
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="client-email">Email</Label>
