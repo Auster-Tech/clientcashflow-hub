@@ -57,7 +57,7 @@ const Index = ({ onLogin }: IndexProps) => {
           </TabsList>
           
           <TabsContent value="accountant">
-            <Card className="border-0 shadow-lg animated-border">
+            <Card className="border-0 shadow-lg">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <Building className="h-5 w-5" />
@@ -106,7 +106,7 @@ const Index = ({ onLogin }: IndexProps) => {
           </TabsContent>
           
           <TabsContent value="client-admin">
-            <Card className="border-0 shadow-lg animated-border">
+            <Card className="border-0 shadow-lg">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <LineChart className="h-5 w-5" />

@@ -5,7 +5,7 @@ import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StatsTrendProps {
-  value: string;
+  value: string | number;
   label?: string;
   positive?: boolean;
   isPositive?: boolean;
