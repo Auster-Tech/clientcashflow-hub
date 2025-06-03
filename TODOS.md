@@ -38,16 +38,43 @@ Botão Add User não funciona.
 
     Botão Upload não funciona.
 
-
-
 ### Cashflow
+
+Falta um filtro de seleção de qual cliente se deseja obter a visão
+
+_mesmos pontos da visão cliente_
+
 ### Transactions
+
+Falta um filtro de seleção de qual cliente se deseja obter a visão
+
+_mesmos pontos da visão cliente_
+
 ### Accounts
+
+Falta um filtro de seleção de qual cliente se deseja obter a visão
+
+_mesmos pontos da visão cliente_
+
 ### Categories
+
+Página não está criada.
+
 ### Cost Centers
+
+Página não está criada.
+
 ### Partners
+
+Página não está criada.
+
 ### Invoices
+
+Página não está criada.
+
 ### Settings (?)
+
+Página não está criada.
 
 ## Visão Cliente
 
