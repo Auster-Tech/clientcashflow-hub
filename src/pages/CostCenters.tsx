@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatsCard } from '@/components/ui/StatsCard';
 import { CostCenterForm } from '@/components/forms/CostCenterForm';
+import { ClientSelector } from '@/components/ui/ClientSelector';
+import { useClient } from '@/contexts/ClientContext';
 import { UserRole, CostCenter } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, Tag } from 'lucide-react';
@@ -56,10 +57,33 @@ const mockCostCenters: CostCenter[] = [
 ];
 
 const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
+  const { selectedClient } = useClient();
   const [costCenters, setCostCenters] = useState<CostCenter[]>(mockCostCenters);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | null>(null);
   const { toast } = useToast();
+
+  // Show message for accountants who haven't selected a client
+  if (userRole === 'accountant' && !selectedClient) {
+    return (
+      <DashboardLayout userRole={userRole}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Cost Centers</h1>
+              <p className="text-muted-foreground">
+                Manage your organizational cost centers
+              </p>
+            </div>
+            <ClientSelector userRole={userRole} />
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Please select a client to manage cost centers.</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const handleAddCostCenter = () => {
     setEditingCostCenter(null);
@@ -156,12 +180,16 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
             <h1 className="text-3xl font-bold tracking-tight">Cost Centers</h1>
             <p className="text-muted-foreground">
               Manage your organizational cost centers
+              {selectedClient && ` for ${selectedClient.name}`}
             </p>
           </div>
-          <Button onClick={handleAddCostCenter} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Cost Center
-          </Button>
+          <div className="flex items-center gap-4">
+            <ClientSelector userRole={userRole} />
+            <Button onClick={handleAddCostCenter} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Cost Center
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}

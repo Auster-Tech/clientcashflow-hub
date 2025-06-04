@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
+import { ClientProvider } from "@/contexts/ClientContext";
 
 // Pages
 import Index from "./pages/Index";
@@ -38,126 +38,128 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                isAuthenticated ? (
-                  <Navigate to="/dashboard" replace />
-                ) : (
-                  <Index onLogin={handleLogin} />
-                )
-              } 
-            />
-            <Route 
-              path="/dashboard"
-              element={
-                isAuthenticated ? (
-                  <Dashboard userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route 
-              path="/clients"
-              element={
-                isAuthenticated && userRole === "accountant" ? (
-                  <Clients />
-                ) : (
-                  <Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />
-                )
-              }
-            />
-            <Route 
-              path="/clients/:id"
-              element={
-                isAuthenticated && userRole === "accountant" ? (
-                  <ClientDetails />
-                ) : (
-                  <Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />
-                )
-              }
-            />
-            <Route 
-              path="/cashflow"
-              element={
-                isAuthenticated ? (
-                  <Cashflow userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route 
-              path="/transactions"
-              element={
-                isAuthenticated ? (
-                  <Transactions userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route 
-              path="/accounts"
-              element={
-                isAuthenticated ? (
-                  <Accounts userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route 
-              path="/categories"
-              element={
-                isAuthenticated ? (
-                  <Categories userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route 
-              path="/cost-centers"
-              element={
-                isAuthenticated ? (
-                  <CostCenters userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route 
-              path="/partners"
-              element={
-                isAuthenticated ? (
-                  <Partners userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route 
-              path="/invoices"
-              element={
-                isAuthenticated ? (
-                  <Invoices userRole={userRole} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ClientProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  isAuthenticated ? (
+                    <Navigate to="/dashboard" replace />
+                  ) : (
+                    <Index onLogin={handleLogin} />
+                  )
+                } 
+              />
+              <Route 
+                path="/dashboard"
+                element={
+                  isAuthenticated ? (
+                    <Dashboard userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route 
+                path="/clients"
+                element={
+                  isAuthenticated && userRole === "accountant" ? (
+                    <Clients />
+                  ) : (
+                    <Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />
+                  )
+                }
+              />
+              <Route 
+                path="/clients/:id"
+                element={
+                  isAuthenticated && userRole === "accountant" ? (
+                    <ClientDetails />
+                  ) : (
+                    <Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />
+                  )
+                }
+              />
+              <Route 
+                path="/cashflow"
+                element={
+                  isAuthenticated ? (
+                    <Cashflow userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route 
+                path="/transactions"
+                element={
+                  isAuthenticated ? (
+                    <Transactions userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route 
+                path="/accounts"
+                element={
+                  isAuthenticated ? (
+                    <Accounts userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route 
+                path="/categories"
+                element={
+                  isAuthenticated ? (
+                    <Categories userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route 
+                path="/cost-centers"
+                element={
+                  isAuthenticated ? (
+                    <CostCenters userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route 
+                path="/partners"
+                element={
+                  isAuthenticated ? (
+                    <Partners userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route 
+                path="/invoices"
+                element={
+                  isAuthenticated ? (
+                    <Invoices userRole={userRole} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ClientProvider>
     </QueryClientProvider>
   );
 };

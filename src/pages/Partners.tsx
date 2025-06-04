@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,8 @@ import { DataTable } from '@/components/ui/DataTable';
 import { StatsCard } from '@/components/ui/StatsCard';
 import { PartnerForm } from '@/components/forms/PartnerForm';
 import { UploadCSV } from '@/components/ui/UploadCSV';
+import { ClientSelector } from '@/components/ui/ClientSelector';
+import { useClient } from '@/contexts/ClientContext';
 import { UserRole, Partner } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, Tag, TrendingUp, TrendingDown, Upload } from 'lucide-react';
@@ -70,11 +71,34 @@ const mockPartners: Partner[] = [
 ];
 
 const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
+  const { selectedClient } = useClient();
   const [partners, setPartners] = useState<Partner[]>(mockPartners);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const { toast } = useToast();
+
+  // Show message for accountants who haven't selected a client
+  if (userRole === 'accountant' && !selectedClient) {
+    return (
+      <DashboardLayout userRole={userRole}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Partners</h1>
+              <p className="text-muted-foreground">
+                Manage your customers, suppliers, and vendors
+              </p>
+            </div>
+            <ClientSelector userRole={userRole} />
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Please select a client to manage partners.</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const handleAddPartner = () => {
     setEditingPartner(null);
@@ -221,17 +245,21 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
             <h1 className="text-3xl font-bold tracking-tight">Partners</h1>
             <p className="text-muted-foreground">
               Manage your customers, suppliers, and vendors
+              {selectedClient && ` for ${selectedClient.name}`}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={handleUploadCSV} variant="outline" className="gap-2">
-              <Upload className="h-4 w-4" />
-              Upload CSV
-            </Button>
-            <Button onClick={handleAddPartner} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Partner
-            </Button>
+          <div className="flex items-center gap-4">
+            <ClientSelector userRole={userRole} />
+            <div className="flex gap-2">
+              <Button onClick={handleUploadCSV} variant="outline" className="gap-2">
+                <Upload className="h-4 w-4" />
+                Upload CSV
+              </Button>
+              <Button onClick={handleAddPartner} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Partner
+              </Button>
+            </div>
           </div>
         </div>
 

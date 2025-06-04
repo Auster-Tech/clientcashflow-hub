@@ -1,8 +1,9 @@
-
 import React, { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClientSelector } from "@/components/ui/ClientSelector";
+import { useClient } from "@/contexts/ClientContext";
 import { UserRole } from "@/types";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
@@ -34,17 +35,44 @@ const mockData = [
 ];
 
 const Cashflow = ({ userRole }: CashflowProps) => {
+  const { selectedClient } = useClient();
   const [period, setPeriod] = useState("yearly");
   const [date, setDate] = useState<Date | undefined>(new Date());
+
+  // Show message for accountants who haven't selected a client
+  if (userRole === 'accountant' && !selectedClient) {
+    return (
+      <DashboardLayout userRole={userRole}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Cashflow</h1>
+              <p className="text-muted-foreground">
+                Track income, expenses, and profit over time
+              </p>
+            </div>
+            <ClientSelector userRole={userRole} />
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Please select a client to view cashflow data.</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
   
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Cashflow</h1>
-          <p className="text-muted-foreground">
-            Track income, expenses, and profit over time
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Cashflow</h1>
+            <p className="text-muted-foreground">
+              Track income, expenses, and profit over time
+              {selectedClient && ` for ${selectedClient.name}`}
+            </p>
+          </div>
+          <ClientSelector userRole={userRole} />
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between gap-4">

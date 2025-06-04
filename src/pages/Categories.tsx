@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatsCard } from '@/components/ui/StatsCard';
 import { CategoryForm } from '@/components/forms/CategoryForm';
+import { ClientSelector } from '@/components/ui/ClientSelector';
+import { useClient } from '@/contexts/ClientContext';
 import { UserRole, Category } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, Tag, TrendingUp, TrendingDown } from 'lucide-react';
@@ -60,10 +62,33 @@ const mockCategories: Category[] = [
 ];
 
 const Categories = ({ userRole = 'accountant' }: CategoriesProps) => {
+  const { selectedClient } = useClient();
   const [categories, setCategories] = useState<Category[]>(mockCategories);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const { toast } = useToast();
+
+  // Show message for accountants who haven't selected a client
+  if (userRole === 'accountant' && !selectedClient) {
+    return (
+      <DashboardLayout userRole={userRole}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
+              <p className="text-muted-foreground">
+                Manage your income and expense categories
+              </p>
+            </div>
+            <ClientSelector userRole={userRole} />
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Please select a client to manage categories.</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -179,12 +204,16 @@ const Categories = ({ userRole = 'accountant' }: CategoriesProps) => {
             <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
             <p className="text-muted-foreground">
               Manage your income and expense categories
+              {selectedClient && ` for ${selectedClient.name}`}
             </p>
           </div>
-          <Button onClick={handleAddCategory} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Category
-          </Button>
+          <div className="flex items-center gap-4">
+            <ClientSelector userRole={userRole} />
+            <Button onClick={handleAddCategory} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Category
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
