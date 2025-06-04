@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ import Accounts from "./pages/Accounts";
 import NotFound from "./pages/NotFound";
 import CostCenters from "./pages/CostCenters";
 import Partners from "./pages/Partners";
+import Invoices from "./pages/Invoices";
 
 // Types
 import { UserRole } from "./types";
@@ -136,6 +138,16 @@ const App = () => {
               element={
                 isAuthenticated ? (
                   <Partners userRole={userRole} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route 
+              path="/invoices"
+              element={
+                isAuthenticated ? (
+                  <Invoices userRole={userRole} />
                 ) : (
                   <Navigate to="/" replace />
                 )

@@ -33,6 +33,18 @@ export interface Partner {
   address?: string;
 }
 
+export interface Invoice {
+  id: string;
+  number: string;
+  date: string | Date;
+  dueDate: string | Date;
+  amount: number;
+  status: "draft" | "sent" | "paid" | "overdue";
+  partnerId: string;
+  description?: string;
+  notes?: string;
+}
+
 export interface Transaction {
   id: string;
   date: string | Date;
