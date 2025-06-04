@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 
 // Types
 import { UserRole } from "./types";
+import Categories from "./pages/Categories";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,16 @@ const App = () => {
               element={
                 isAuthenticated ? (
                   <Accounts userRole={userRole} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route 
+              path="/categories"
+              element={
+                isAuthenticated ? (
+                  <Categories userRole={userRole} />
                 ) : (
                   <Navigate to="/" replace />
                 )
