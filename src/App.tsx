@@ -15,6 +15,7 @@ import Transactions from "./pages/Transactions";
 import Accounts from "./pages/Accounts";
 import NotFound from "./pages/NotFound";
 import CostCenters from "./pages/CostCenters";
+import Partners from "./pages/Partners";
 
 // Types
 import { UserRole } from "./types";
@@ -120,11 +121,21 @@ const App = () => {
                 )
               }
             />
-            <Route       
+            <Route 
               path="/cost-centers"
               element={
                 isAuthenticated ? (
                   <CostCenters userRole={userRole} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route 
+              path="/partners"
+              element={
+                isAuthenticated ? (
+                  <Partners userRole={userRole} />
                 ) : (
                   <Navigate to="/" replace />
                 )
