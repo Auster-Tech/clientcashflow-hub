@@ -40,7 +40,7 @@ Botão Add User não funciona.
 
 ### Cashflow
 
-Falta um filtro de seleção de qual cliente se deseja obter a visão
+~~Falta um filtro de seleção de qual cliente se deseja obter a visão~~
 
 _mesmos pontos da visão cliente_
 
@@ -58,19 +58,27 @@ _mesmos pontos da visão cliente_
 
 ### Categories
 
-Página não está criada.
+~~Falta um filtro de seleção de qual cliente se deseja obter a visão~~
+
+linkar com o back e conversar com os filtros
 
 ### Cost Centers
 
-Página não está criada.
+~~Falta um filtro de seleção de qual cliente se deseja obter a visão~~
+
+linkar com o back e conversar com os filtros
 
 ### Partners
 
-Página não está criada.
+~~Falta um filtro de seleção de qual cliente se deseja obter a visão~~
+
+linkar com o back e conversar com os filtros
 
 ### Invoices
 
-Página não está criada.
+~~Falta um filtro de seleção de qual cliente se deseja obter a visão~~
+
+linkar com o back e conversar com os filtros
 
 ### Settings (?)
 
@@ -112,19 +120,19 @@ Botão manage não está funcionando. Deveria abrir um modal tal qual o de Add N
 
 ### Categories
 
-Página não está criada.
+linkar com o back e conversar com os filtros
 
 ### Cost Centers
 
-Página não está criada.
+linkar com o back e conversar com os filtros
 
 ### Partners
 
-Página não está criada.
+linkar com o back e conversar com os filtros
 
 ### Invoices
 
-Página não está criada.
+linkar com o back e conversar com os filtros
 
 ### Settings (?)
 
