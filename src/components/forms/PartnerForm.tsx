@@ -45,7 +45,7 @@ export function PartnerForm({ partner, onSubmit, onCancel }: PartnerFormProps) {
     resolver: zodResolver(partnerFormSchema),
     defaultValues: {
       name: partner?.name || '',
-      type: partner?.type || 'customer',
+      type: (partner?.type as 'customer' | 'supplier' | 'vendor') || 'customer',
       email: partner?.email || '',
       phone: partner?.phone || '',
       address: partner?.address || '',
@@ -53,7 +53,13 @@ export function PartnerForm({ partner, onSubmit, onCancel }: PartnerFormProps) {
   });
 
   const handleSubmit = (data: PartnerFormData) => {
-    onSubmit(data);
+    onSubmit({
+      name: data.name,
+      type: data.type,
+      email: data.email || '',
+      phone: data.phone || '',
+      address: data.address || '',
+    });
   };
 
   return (

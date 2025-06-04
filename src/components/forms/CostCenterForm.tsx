@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Form,
   FormControl,
@@ -38,7 +39,10 @@ export function CostCenterForm({ costCenter, onSubmit, onCancel }: CostCenterFor
   });
 
   const handleSubmit = (data: CostCenterFormData) => {
-    onSubmit(data);
+    onSubmit({
+      name: data.name,
+      description: data.description || '',
+    });
   };
 
   return (
@@ -65,7 +69,7 @@ export function CostCenterForm({ costCenter, onSubmit, onCancel }: CostCenterFor
             <FormItem>
               <FormLabel>Description (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="Enter cost center description" {...field} />
+                <Textarea placeholder="Enter description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

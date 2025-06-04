@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -43,13 +44,17 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
       name: category?.name || '',
-      type: category?.type || 'expense',
+      type: (category?.type as 'income' | 'expense') || 'income',
       description: category?.description || '',
     },
   });
 
   const handleSubmit = (data: CategoryFormData) => {
-    onSubmit(data);
+    onSubmit({
+      name: data.name,
+      type: data.type,
+      description: data.description || '',
+    });
   };
 
   return (
@@ -98,7 +103,7 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
             <FormItem>
               <FormLabel>Description (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="Enter category description" {...field} />
+                <Textarea placeholder="Enter description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

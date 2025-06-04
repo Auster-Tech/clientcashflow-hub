@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatsCard } from '@/components/ui/StatsCard';
 import { PartnerForm } from '@/components/forms/PartnerForm';
+import { UploadCSV } from '@/components/ui/UploadCSV';
 import { UserRole, Partner } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Plus, Tag, TrendingUp, TrendingDown } from 'lucide-react';
+import { MoreHorizontal, Plus, Tag, TrendingUp, TrendingDown, Upload } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,12 +72,17 @@ const mockPartners: Partner[] = [
 const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   const [partners, setPartners] = useState<Partner[]>(mockPartners);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const { toast } = useToast();
 
   const handleAddPartner = () => {
     setEditingPartner(null);
     setIsFormOpen(true);
+  };
+
+  const handleUploadCSV = () => {
+    setIsUploadOpen(true);
   };
 
   const handleEditPartner = (partner: Partner) => {
@@ -120,6 +126,25 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
     }
     setIsFormOpen(false);
     setEditingPartner(null);
+  };
+
+  const handleCSVUpload = (csvData: any[]) => {
+    const newPartners: Partner[] = csvData.map((row, index) => ({
+      id: `csv-${Date.now()}-${index}`,
+      name: row.name || row.Name || '',
+      type: (row.type || row.Type || 'customer').toLowerCase(),
+      email: row.email || row.Email || '',
+      phone: row.phone || row.Phone || '',
+      address: row.address || row.Address || ''
+    })).filter(partner => partner.name); // Only include rows with names
+
+    setPartners(prev => [...prev, ...newPartners]);
+    setIsUploadOpen(false);
+    
+    toast({
+      title: "Partners imported",
+      description: `${newPartners.length} partners have been successfully imported from CSV.`,
+    });
   };
 
   const columns: ColumnDef<Partner>[] = [
@@ -198,10 +223,16 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
               Manage your customers, suppliers, and vendors
             </p>
           </div>
-          <Button onClick={handleAddPartner} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Partner
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleUploadCSV} variant="outline" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload CSV
+            </Button>
+            <Button onClick={handleAddPartner} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Partner
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -266,6 +297,19 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
               partner={editingPartner}
               onSubmit={handleFormSubmit}
               onCancel={() => setIsFormOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* CSV Upload Dialog */}
+        <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Upload Partners CSV</DialogTitle>
+            </DialogHeader>
+            <UploadCSV
+              onUpload={handleCSVUpload}
+              onCancel={() => setIsUploadOpen(false)}
             />
           </DialogContent>
         </Dialog>
