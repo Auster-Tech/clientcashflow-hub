@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Category } from '@/types';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 const categoryFormSchema = z.object({
   name: z.string().min(1, 'Category name is required'),
@@ -40,11 +41,13 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps) {
+  const { t } = useTranslation();
+  
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
       name: category?.name || '',
-      type: (category?.type as 'income' | 'expense') || 'income',
+      type: (category?.type as 'income' | 'expense') || undefined,
       description: category?.description || '',
     },
   });
@@ -65,9 +68,9 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category Name</FormLabel>
+              <FormLabel>{t('categories.name')}</FormLabel>
               <FormControl>
-                <Input placeholder="Enter category name" {...field} />
+                <Input placeholder={t('form.enterName')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -79,16 +82,16 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
           name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Type</FormLabel>
+              <FormLabel>{t('common.type')}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category type" />
+                    <SelectValue placeholder={t('form.selectType')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="income">{t('categories.income')}</SelectItem>
+                  <SelectItem value="expense">{t('categories.expense')}</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -101,9 +104,9 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
+              <FormLabel>{t('common.description')} ({t('form.optional')})</FormLabel>
               <FormControl>
-                <Textarea placeholder="Enter description" {...field} />
+                <Textarea placeholder={t('form.enterDescription')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -112,10 +115,10 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
 
         <div className="flex justify-end space-x-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit">
-            {category ? 'Update Category' : 'Create Category'}
+            {category ? t('categories.update') : t('categories.create')}
           </Button>
         </div>
       </form>

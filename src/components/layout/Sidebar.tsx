@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/types';
+import { useTranslation } from '@/contexts/TranslationContext';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 
 type SidebarProps = {
   role: UserRole;
@@ -19,7 +21,7 @@ type SidebarProps = {
 };
 
 type NavItem = {
-  title: string;
+  titleKey: string;
   href: string;
   icon: React.ElementType;
   roles: Array<UserRole>;
@@ -28,65 +30,66 @@ type NavItem = {
 export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
   const location = useLocation();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [hovering, setHovering] = useState(false);
 
   const navigationItems: NavItem[] = [
     { 
-      title: 'Dashboard', 
+      titleKey: 'nav.dashboard', 
       href: '/dashboard', 
       icon: LayoutDashboard,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Clients', 
+      titleKey: 'nav.clients', 
       href: '/clients', 
       icon: Building,
       roles: ['accountant'] 
     },
     { 
-      title: 'Cashflow', 
+      titleKey: 'nav.cashflow', 
       href: '/cashflow', 
       icon: BarChart,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Transactions', 
+      titleKey: 'nav.transactions', 
       href: '/transactions', 
       icon: FileSpreadsheet,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Accounts', 
+      titleKey: 'nav.accounts', 
       href: '/accounts', 
       icon: Landmark,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Categories', 
+      titleKey: 'nav.categories', 
       href: '/categories', 
       icon: Tag,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Cost Centers', 
+      titleKey: 'nav.costCenters', 
       href: '/cost-centers', 
       icon: FolderKanban,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Partners', 
+      titleKey: 'nav.partners', 
       href: '/partners', 
       icon: Users,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Invoices', 
+      titleKey: 'nav.invoices', 
       href: '/invoices', 
       icon: FileText,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
     { 
-      title: 'Settings', 
+      titleKey: 'nav.settings', 
       href: '/settings', 
       icon: Settings,
       roles: ['accountant', 'client-admin', 'client-user'] 
@@ -103,8 +106,8 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
 
   const handleLogout = () => {
     toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account.",
+      title: t('toast.loggedOut'),
+      description: t('toast.loggedOutDesc'),
     });
 
     // In a real app, this would handle authentication logout
@@ -167,7 +170,7 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
                     "text-sm font-medium transition-all overflow-hidden whitespace-nowrap",
                     collapsed && !hovering ? "w-0 opacity-0" : "w-full opacity-100",
                   )}>
-                    {item.title}
+                    {t(item.titleKey)}
                   </span>
                 </Link>
               </li>
@@ -176,7 +179,9 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="mt-auto p-4">
+      <div className="mt-auto p-4 space-y-2">
+        <LanguageToggle collapsed={collapsed && !hovering} />
+        
         <Button
           variant="ghost"
           className={cn(
@@ -189,7 +194,7 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
             "transition-all overflow-hidden",
             collapsed && !hovering ? "w-0 opacity-0" : "opacity-100"
           )}>
-            Logout
+            {t('nav.logout')}
           </span>
         </Button>
       </div>

@@ -3,6 +3,7 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useClient } from '@/contexts/ClientContext';
 import { UserRole } from '@/types';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 interface ClientSelectorProps {
   userRole: UserRole;
@@ -10,6 +11,7 @@ interface ClientSelectorProps {
 
 export function ClientSelector({ userRole }: ClientSelectorProps) {
   const { selectedClient, setSelectedClient, clients } = useClient();
+  const { t } = useTranslation();
 
   // Only show client selector for accountants
   if (userRole !== 'accountant') {
@@ -18,7 +20,7 @@ export function ClientSelector({ userRole }: ClientSelectorProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm font-medium text-muted-foreground">Client:</span>
+      <span className="text-sm font-medium text-muted-foreground">{t('common.client')}:</span>
       <Select
         value={selectedClient?.id || ''}
         onValueChange={(value) => {
@@ -27,7 +29,7 @@ export function ClientSelector({ userRole }: ClientSelectorProps) {
         }}
       >
         <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder="Select a client" />
+          <SelectValue placeholder={t('common.selectClient')} />
         </SelectTrigger>
         <SelectContent>
           {clients.map((client) => (

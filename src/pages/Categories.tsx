@@ -1,279 +1,281 @@
 import React, { useState } from 'react';
+import { Plus, Pencil, Trash2, Upload, Download } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/ui/DataTable';
 import { StatsCard } from '@/components/ui/StatsCard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CategoryForm } from '@/components/forms/CategoryForm';
+import { UploadCSV } from '@/components/ui/UploadCSV';
 import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
+import { useTranslation } from '@/contexts/TranslationContext';
 import { UserRole, Category } from '@/types';
-import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Plus, Tag, TrendingUp, TrendingDown } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
 
-interface CategoriesProps {
-  userRole?: UserRole;
-}
-
-// Mock data for categories
 const mockCategories: Category[] = [
   {
     id: '1',
-    name: 'Office Supplies',
+    name: 'Rent',
     type: 'expense',
-    description: 'Office equipment and supplies'
+    description: 'Monthly rental expenses'
   },
   {
     id: '2',
-    name: 'Travel Expenses',
+    name: 'Salaries',
     type: 'expense',
-    description: 'Business travel and accommodation'
+    description: 'Employee salaries'
   },
   {
     id: '3',
     name: 'Sales Revenue',
     type: 'income',
-    description: 'Revenue from product sales'
+    description: 'Income from product sales'
   },
   {
     id: '4',
-    name: 'Consulting Services',
+    name: 'Interest Income',
     type: 'income',
-    description: 'Income from consulting work'
+    description: 'Income from interest payments'
   },
   {
     id: '5',
-    name: 'Marketing',
+    name: 'Marketing Expenses',
     type: 'expense',
-    description: 'Marketing and advertising expenses'
+    description: 'Expenses related to marketing activities'
   }
 ];
 
-const Categories = ({ userRole = 'accountant' }: CategoriesProps) => {
-  const { selectedClient } = useClient();
-  const [categories, setCategories] = useState<Category[]>(mockCategories);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const { toast } = useToast();
+interface CategoriesProps {
+  userRole: UserRole;
+}
 
-  // Show message for accountants who haven't selected a client
+export default function Categories({ userRole }: CategoriesProps) {
+  const { t } = useTranslation();
+  const { selectedClient } = useClient();
+  const [categories, setCategories] = useState(mockCategories);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleUpload = (data: Omit<Category, 'id'>[]) => {
+    const newCategories = data.map((item, index) => ({
+      id: (categories.length + index + 1).toString(),
+      ...item,
+    }));
+    setCategories([...categories, ...newCategories]);
+    setUploadDialogOpen(false);
+  };
+
+  const handleSubmit = (data: Omit<Category, 'id'>) => {
+    if (editingCategory) {
+      // Update existing category
+      setCategories(
+        categories.map((c) => (c.id === editingCategory.id ? { ...c, ...data } : c))
+      );
+    } else {
+      // Create new category
+      const newCategory: Category = {
+        id: (categories.length + 1).toString(),
+        ...data,
+      };
+      setCategories([...categories, newCategory]);
+    }
+    setDialogOpen(false);
+    setEditingCategory(null);
+  };
+
+  const handleEdit = (category: Category) => {
+    setEditingCategory(category);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setCategories(categories.filter((c) => c.id !== id));
+  };
+
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const columns = [
+    { 
+      key: 'name' as keyof Category, 
+      header: t('common.name'),
+      cell: (category: Category) => category.name
+    },
+    { 
+      key: 'type' as keyof Category, 
+      header: t('common.type'),
+      cell: (category: Category) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          category.type === 'income' 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-red-100 text-red-800'
+        }`}>
+          {category.type === 'income' ? t('categories.income') : t('categories.expense')}
+        </span>
+      )
+    },
+    { 
+      key: 'description' as keyof Category, 
+      header: t('common.description'),
+      cell: (category: Category) => category.description || '-'
+    },
+    {
+      key: 'actions' as keyof Category,
+      header: t('common.actions'),
+      cell: (category: Category) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleEdit(category)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDelete(category.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const stats = [
+    {
+      title: t('categories.total'),
+      value: categories.length.toString(),
+      icon: Plus,
+    },
+    {
+      title: t('categories.incomeCount'),
+      value: categories.filter(c => c.type === 'income').length.toString(),
+      icon: Plus,
+    },
+    {
+      title: t('categories.expenseCount'),
+      value: categories.filter(c => c.type === 'expense').length.toString(),
+      icon: Plus,
+    },
+  ];
+
   if (userRole === 'accountant' && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-              <p className="text-muted-foreground">
-                Manage your income and expense categories
-              </p>
+              <h1 className="text-3xl font-bold tracking-tight">{t('categories.title')}</h1>
+              <p className="text-muted-foreground">{t('categories.subtitle')}</p>
             </div>
             <ClientSelector userRole={userRole} />
           </div>
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Please select a client to manage categories.</p>
+          
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-lg text-muted-foreground">{t('categories.selectClient')}</p>
+            </div>
           </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  const handleAddCategory = () => {
-    setEditingCategory(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEditCategory = (category: Category) => {
-    setEditingCategory(category);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteCategory = (categoryId: string) => {
-    setCategories(prev => prev.filter(cat => cat.id !== categoryId));
-    toast({
-      title: "Category deleted",
-      description: "The category has been successfully deleted.",
-    });
-  };
-
-  const handleFormSubmit = (categoryData: Omit<Category, 'id'>) => {
-    if (editingCategory) {
-      // Update existing category
-      setCategories(prev => 
-        prev.map(cat => 
-          cat.id === editingCategory.id 
-            ? { ...editingCategory, ...categoryData }
-            : cat
-        )
-      );
-      toast({
-        title: "Category updated",
-        description: "The category has been successfully updated.",
-      });
-    } else {
-      // Add new category
-      const newCategory: Category = {
-        id: Date.now().toString(),
-        ...categoryData
-      };
-      setCategories(prev => [...prev, newCategory]);
-      toast({
-        title: "Category created",
-        description: "The new category has been successfully created.",
-      });
-    }
-    setIsFormOpen(false);
-    setEditingCategory(null);
-  };
-
-  const columns: ColumnDef<Category>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Name',
-    },
-    {
-      accessorKey: 'type',
-      header: 'Type',
-      cell: ({ row }) => {
-        const type = row.getValue('type') as string;
-        return (
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            type === 'income' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {type === 'income' ? 'Income' : 'Expense'}
-          </span>
-        );
-      },
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => {
-        const category = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEditCategory(category)}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => handleDeleteCategory(category.id)}
-                className="text-red-600"
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
-
-  const incomeCategories = categories.filter(cat => cat.type === 'income');
-  const expenseCategories = categories.filter(cat => cat.type === 'expense');
-
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-            <p className="text-muted-foreground">
-              Manage your income and expense categories
-              {selectedClient && ` for ${selectedClient.name}`}
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('categories.title')}</h1>
+            <p className="text-muted-foreground">{t('categories.subtitle')}</p>
+            {userRole === 'accountant' && selectedClient && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {t('common.client')}: {selectedClient.name}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
-            <Button onClick={handleAddCategory} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Category
-            </Button>
+            <div className="flex gap-2">
+              <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t('common.upload')}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{t('common.upload')}</DialogTitle>
+                  </DialogHeader>
+                  <UploadCSV
+                    onUpload={handleUpload}
+                    templateData={[
+                      { name: 'Sample Income', type: 'income', description: 'Sample income category' },
+                      { name: 'Sample Expense', type: 'expense', description: 'Sample expense category' }
+                    ]}
+                    templateFilename="categories-template.csv"
+                  />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('categories.add')}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingCategory ? t('categories.edit') : t('categories.add')}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <CategoryForm
+                    category={editingCategory}
+                    onSubmit={handleSubmit}
+                    onCancel={() => {
+                      setDialogOpen(false);
+                      setEditingCategory(null);
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <StatsCard
-            title="Total Categories"
-            value={categories.length}
-            icon={Tag}
-            description="All categories"
-          />
-          <StatsCard
-            title="Income Categories"
-            value={incomeCategories.length}
-            icon={TrendingUp}
-            description="Revenue categories"
-            trend={{
-              value: `${Math.round((incomeCategories.length / categories.length) * 100)}%`,
-              label: "of total"
-            }}
-          />
-          <StatsCard
-            title="Expense Categories"
-            value={expenseCategories.length}
-            icon={TrendingDown}
-            description="Expense categories"
-            trend={{
-              value: `${Math.round((expenseCategories.length / categories.length) * 100)}%`,
-              label: "of total"
-            }}
-          />
+          {stats.map((stat) => (
+            <StatsCard key={stat.title} {...stat} />
+          ))}
         </div>
 
-        {/* Categories Table */}
         <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Input
+              placeholder={t('common.search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+
           <DataTable
             columns={columns}
-            data={categories}
-            searchColumn="name"
-            searchPlaceholder="Search categories..."
+            data={filteredCategories}
+            searchTerm={searchTerm}
+            onSearch={setSearchTerm}
           />
         </div>
-
-        {/* Category Form Dialog */}
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {editingCategory ? 'Edit Category' : 'Add New Category'}
-              </DialogTitle>
-            </DialogHeader>
-            <CategoryForm
-              category={editingCategory}
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsFormOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
     </DashboardLayout>
   );
-};
-
-export default Categories;
+}
