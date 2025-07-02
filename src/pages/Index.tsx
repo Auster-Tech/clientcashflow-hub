@@ -17,14 +17,16 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { CreditCard, Building, LineChart } from 'lucide-react';
+import { CreditCard, Building, LineChart, Globe } from 'lucide-react';
 import { UserRole } from '@/types';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 interface IndexProps {
   onLogin: (role: UserRole) => void;
 }
 
 const Index = ({ onLogin }: IndexProps) => {
+  const { t, language, setLanguage } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
@@ -34,17 +36,30 @@ const Index = ({ onLogin }: IndexProps) => {
     onLogin(role);
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'pt' : 'en');
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background to-secondary/20 p-4">
       <div className="w-full max-w-md space-y-8 animate-blur-in">
         <div className="text-center space-y-2">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center items-center gap-4 mb-6">
             <div className="relative">
               <div className="absolute inset-0 rounded-full bg-primary/10 blur-xl"></div>
               <div className="relative bg-white rounded-full p-3 shadow-md">
                 <CreditCard className="h-8 w-8 text-primary" />
               </div>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLanguage}
+              className="gap-2"
+            >
+              <Globe className="h-4 w-4" />
+              {language === 'en' ? 'PT' : 'EN'}
+            </Button>
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Finance Hub</h1>
           <p className="text-muted-foreground">Your accounting and financial management solution</p>

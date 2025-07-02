@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { StatsCard } from '@/components/ui/StatsCard';
 import { CostCenterForm } from '@/components/forms/CostCenterForm';
 import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
+import { useTranslation } from '@/contexts/TranslationContext';
 import { UserRole, CostCenter } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, Tag } from 'lucide-react';
@@ -58,6 +60,7 @@ const mockCostCenters: CostCenter[] = [
 
 const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   const { selectedClient } = useClient();
+  const { t } = useTranslation();
   const [costCenters, setCostCenters] = useState<CostCenter[]>(mockCostCenters);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | null>(null);
@@ -70,15 +73,13 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Cost Centers</h1>
-              <p className="text-muted-foreground">
-                Manage your organizational cost centers
-              </p>
+              <h1 className="text-3xl font-bold tracking-tight">{t('costCenters.title')}</h1>
+              <p className="text-muted-foreground">{t('costCenters.subtitle')}</p>
             </div>
             <ClientSelector userRole={userRole} />
           </div>
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Please select a client to manage cost centers.</p>
+            <p className="text-muted-foreground">{t('costCenters.selectClient')}</p>
           </div>
         </div>
       </DashboardLayout>
@@ -98,14 +99,13 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   const handleDeleteCostCenter = (costCenterId: string) => {
     setCostCenters(prev => prev.filter(cc => cc.id !== costCenterId));
     toast({
-      title: "Cost center deleted",
-      description: "The cost center has been successfully deleted.",
+      title: t('costCenters.title'),
+      description: t('common.delete'),
     });
   };
 
   const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id'>) => {
     if (editingCostCenter) {
-      // Update existing cost center
       setCostCenters(prev => 
         prev.map(cc => 
           cc.id === editingCostCenter.id 
@@ -114,19 +114,18 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
         )
       );
       toast({
-        title: "Cost center updated",
-        description: "The cost center has been successfully updated.",
+        title: t('costCenters.update'),
+        description: t('common.update'),
       });
     } else {
-      // Add new cost center
       const newCostCenter: CostCenter = {
         id: Date.now().toString(),
         ...costCenterData
       };
       setCostCenters(prev => [...prev, newCostCenter]);
       toast({
-        title: "Cost center created",
-        description: "The new cost center has been successfully created.",
+        title: t('costCenters.create'),
+        description: t('common.create'),
       });
     }
     setIsFormOpen(false);
@@ -136,15 +135,15 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   const columns: ColumnDef<CostCenter>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: t('common.name'),
     },
     {
       accessorKey: 'description',
-      header: 'Description',
+      header: t('common.description'),
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       cell: ({ row }) => {
         const costCenter = row.original;
         return (
@@ -156,13 +155,13 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleEditCostCenter(costCenter)}>
-                Edit
+                {t('common.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => handleDeleteCostCenter(costCenter.id)}
                 className="text-red-600"
               >
-                Delete
+                {t('common.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -177,17 +176,17 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Cost Centers</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('costCenters.title')}</h1>
             <p className="text-muted-foreground">
-              Manage your organizational cost centers
-              {selectedClient && ` for ${selectedClient.name}`}
+              {t('costCenters.subtitle')}
+              {selectedClient && ` ${t('common.client')}: ${selectedClient.name}`}
             </p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
             <Button onClick={handleAddCostCenter} className="gap-2">
               <Plus className="h-4 w-4" />
-              Add Cost Center
+              {t('costCenters.add')}
             </Button>
           </div>
         </div>
@@ -195,22 +194,22 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
           <StatsCard
-            title="Total Cost Centers"
+            title={t('costCenters.total')}
             value={costCenters.length}
             icon={Tag}
-            description="All cost centers"
+            description={t('costCenters.total')}
           />
           <StatsCard
-            title="Active Departments"
+            title={t('costCenters.active')}
             value={costCenters.length}
             icon={Tag}
-            description="Currently active"
+            description={t('costCenters.active')}
           />
           <StatsCard
-            title="Average per Department"
-            value="N/A"
+            title={t('costCenters.inactive')}
+            value="0"
             icon={Tag}
-            description="Cost allocation"
+            description={t('costCenters.inactive')}
           />
         </div>
 
@@ -220,7 +219,7 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
             columns={columns}
             data={costCenters}
             searchColumn="name"
-            searchPlaceholder="Search cost centers..."
+            searchPlaceholder={t('common.search')}
           />
         </div>
 
@@ -229,7 +228,7 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {editingCostCenter ? 'Edit Cost Center' : 'Add New Cost Center'}
+                {editingCostCenter ? t('costCenters.edit') : t('costCenters.add')}
               </DialogTitle>
             </DialogHeader>
             <CostCenterForm

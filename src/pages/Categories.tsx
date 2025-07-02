@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash2, Upload, Download } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -12,6 +13,7 @@ import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { UserRole, Category } from '@/types';
+import { ColumnDef } from '@tanstack/react-table';
 
 const mockCategories: Category[] = [
   {
@@ -59,10 +61,12 @@ export default function Categories({ userRole }: CategoriesProps) {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleUpload = (data: Omit<Category, 'id'>[]) => {
+  const handleUpload = (data: any[]) => {
     const newCategories = data.map((item, index) => ({
       id: (categories.length + index + 1).toString(),
-      ...item,
+      name: item.name || '',
+      type: item.type || 'expense',
+      description: item.description || '',
     }));
     setCategories([...categories, ...newCategories]);
     setUploadDialogOpen(false);
@@ -99,46 +103,45 @@ export default function Categories({ userRole }: CategoriesProps) {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const columns = [
+  const columns: ColumnDef<Category>[] = [
     { 
-      key: 'name' as keyof Category, 
+      accessorKey: 'name',
       header: t('common.name'),
-      cell: (category: Category) => category.name
     },
     { 
-      key: 'type' as keyof Category, 
+      accessorKey: 'type',
       header: t('common.type'),
-      cell: (category: Category) => (
+      cell: ({ row }) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          category.type === 'income' 
+          row.original.type === 'income' 
             ? 'bg-green-100 text-green-800' 
             : 'bg-red-100 text-red-800'
         }`}>
-          {category.type === 'income' ? t('categories.income') : t('categories.expense')}
+          {row.original.type === 'income' ? t('categories.income') : t('categories.expense')}
         </span>
       )
     },
     { 
-      key: 'description' as keyof Category, 
+      accessorKey: 'description',
       header: t('common.description'),
-      cell: (category: Category) => category.description || '-'
+      cell: ({ row }) => row.original.description || '-'
     },
     {
-      key: 'actions' as keyof Category,
+      id: 'actions',
       header: t('common.actions'),
-      cell: (category: Category) => (
+      cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleEdit(category)}
+            onClick={() => handleEdit(row.original)}
           >
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleDelete(category.id)}
+            onClick={() => handleDelete(row.original.id)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -214,14 +217,7 @@ export default function Categories({ userRole }: CategoriesProps) {
                   <DialogHeader>
                     <DialogTitle>{t('common.upload')}</DialogTitle>
                   </DialogHeader>
-                  <UploadCSV
-                    onUpload={handleUpload}
-                    templateData={[
-                      { name: 'Sample Income', type: 'income', description: 'Sample income category' },
-                      { name: 'Sample Expense', type: 'expense', description: 'Sample expense category' }
-                    ]}
-                    templateFilename="categories-template.csv"
-                  />
+                  <UploadCSV onUpload={handleUpload} />
                 </DialogContent>
               </Dialog>
 

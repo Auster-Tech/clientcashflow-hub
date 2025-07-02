@@ -29,6 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClientCompany } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 // Mock data for clients
 const mockClients: ClientCompany[] = [
@@ -85,6 +86,7 @@ const mockClients: ClientCompany[] = [
 ];
 
 const Clients = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -94,7 +96,7 @@ const Clients = () => {
   const handleDeleteClient = () => {
     // In a real app, this would call an API to delete the client
     toast({
-      title: "Client deleted",
+      title: t('common.delete'),
       description: `${clientToDelete?.name} has been removed from your clients.`,
     });
     setIsDeleteDialogOpen(false);
@@ -133,7 +135,7 @@ const Clients = () => {
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: () => (
         <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
           Active
@@ -152,7 +154,7 @@ const Clients = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to={`/clients/${row.original.id}`} className="flex items-center cursor-pointer">
@@ -162,7 +164,7 @@ const Clients = () => {
               </DropdownMenuItem>
               <DropdownMenuItem className="flex items-center cursor-pointer">
                 <Edit className="mr-2 h-4 w-4" />
-                Edit Client
+                {t('common.edit')} Client
               </DropdownMenuItem>
               <DropdownMenuItem className="flex items-center cursor-pointer">
                 <Users className="mr-2 h-4 w-4" />
@@ -177,7 +179,7 @@ const Clients = () => {
                 }}
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Delete Client
+                {t('common.delete')} Client
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -198,14 +200,14 @@ const Clients = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('nav.clients')}</h1>
             <p className="text-muted-foreground">
               Manage your client companies and their users
             </p>
           </div>
           <Button onClick={() => setIsAddClientOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
-            Add Client
+            {t('common.add')} Client
           </Button>
         </div>
 
@@ -214,7 +216,7 @@ const Clients = () => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search clients..."
+              placeholder={t('common.search')}
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -232,7 +234,7 @@ const Clients = () => {
       <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Add New Client</DialogTitle>
+            <DialogTitle>{t('common.add')} New Client</DialogTitle>
           </DialogHeader>
           
           <Tabs defaultValue="details" className="w-full">
@@ -283,16 +285,16 @@ const Clients = () => {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddClientOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={() => {
               setIsAddClientOpen(false);
               toast({
-                title: "Client added",
+                title: t('common.add'),
                 description: "The new client has been added successfully.",
               });
             }}>
-              Save Client
+              {t('common.save')} Client
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -302,7 +304,7 @@ const Clients = () => {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Delete Client</DialogTitle>
+            <DialogTitle>{t('common.delete')} Client</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p>
@@ -312,10 +314,10 @@ const Clients = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteClient}>
-              Delete Client
+              {t('common.delete')} Client
             </Button>
           </DialogFooter>
         </DialogContent>

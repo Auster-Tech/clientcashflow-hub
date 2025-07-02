@@ -1,9 +1,11 @@
+
 import React, { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientSelector } from "@/components/ui/ClientSelector";
 import { useClient } from "@/contexts/ClientContext";
+import { useTranslation } from "@/contexts/TranslationContext";
 import { UserRole } from "@/types";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
@@ -36,6 +38,7 @@ const mockData = [
 
 const Cashflow = ({ userRole }: CashflowProps) => {
   const { selectedClient } = useClient();
+  const { t } = useTranslation();
   const [period, setPeriod] = useState("yearly");
   const [date, setDate] = useState<Date | undefined>(new Date());
 
@@ -46,7 +49,7 @@ const Cashflow = ({ userRole }: CashflowProps) => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Cashflow</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t('nav.cashflow')}</h1>
               <p className="text-muted-foreground">
                 Track income, expenses, and profit over time
               </p>
@@ -66,10 +69,10 @@ const Cashflow = ({ userRole }: CashflowProps) => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Cashflow</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('nav.cashflow')}</h1>
             <p className="text-muted-foreground">
               Track income, expenses, and profit over time
-              {selectedClient && ` for ${selectedClient.name}`}
+              {selectedClient && ` ${t('common.client')}: ${selectedClient.name}`}
             </p>
           </div>
           <ClientSelector userRole={userRole} />
@@ -81,7 +84,7 @@ const Cashflow = ({ userRole }: CashflowProps) => {
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
                   <CalendarRange className="h-4 w-4" />
-                  <span>Filter</span>
+                  <span>{t('common.filter')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -109,7 +112,7 @@ const Cashflow = ({ userRole }: CashflowProps) => {
           
           <Button variant="outline" size="sm" className="h-8 gap-1 self-start">
             <Download className="h-4 w-4" />
-            <span>Export</span>
+            <span>{t('common.export')}</span>
           </Button>
         </div>
 
