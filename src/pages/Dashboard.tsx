@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { UserRole } from '@/types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, Legend } from 'recharts';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 // Dummy data for charts
 const cashflowData = [
@@ -41,6 +42,8 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ userRole }: DashboardProps) => {
+  const { t } = useTranslation();
+  
   // Helper function to check if the user is a client
   const isClient = userRole === 'client-admin' || userRole === 'client-user';
 
@@ -49,21 +52,21 @@ const Dashboard = ({ userRole }: DashboardProps) => {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
             <p className="text-muted-foreground">
-              Overview of your {userRole === 'accountant' ? 'clients and business' : 'financial metrics'}
+              {t('dashboard.subtitle')} {userRole === 'accountant' ? t('dashboard.clientsAndBusiness') : t('dashboard.financialMetrics')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {userRole === 'accountant' ? (
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
-                Add Client
+                {t('dashboard.addClient')}
               </Button>
             ) : (
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
-                New Transaction
+                {t('dashboard.newTransaction')}
               </Button>
             )}
           </div>
@@ -73,25 +76,25 @@ const Dashboard = ({ userRole }: DashboardProps) => {
           {userRole === 'accountant' ? (
             <>
               <StatsCard
-                title="Total Clients"
+                title={t('dashboard.totalClients')}
                 value="24"
                 icon={Building2}
                 trend={{ value: 12, isPositive: true }}
               />
               <StatsCard
-                title="Active Projects"
+                title={t('dashboard.activeProjects')}
                 value="18"
                 icon={FileText}
                 trend={{ value: 8, isPositive: true }}
               />
               <StatsCard
-                title="Monthly Revenue"
+                title={t('dashboard.monthlyRevenue')}
                 value="$24,935"
                 icon={DollarSign}
                 trend={{ value: 7, isPositive: true }}
               />
               <StatsCard
-                title="Client Retention"
+                title={t('dashboard.clientRetention')}
                 value="97%"
                 icon={Users}
                 trend={{ value: 2, isPositive: true }}
@@ -100,25 +103,25 @@ const Dashboard = ({ userRole }: DashboardProps) => {
           ) : (
             <>
               <StatsCard
-                title="Cash Balance"
+                title={t('dashboard.cashBalance')}
                 value="$12,435"
                 icon={CreditCard}
                 trend={{ value: 3, isPositive: true }}
               />
               <StatsCard
-                title="Monthly Income"
+                title={t('dashboard.monthlyIncome')}
                 value="$8,294"
                 icon={ArrowUpRight}
                 trend={{ value: 5, isPositive: true }}
               />
               <StatsCard
-                title="Monthly Expenses"
+                title={t('dashboard.monthlyExpenses')}
                 value="$5,219"
                 icon={ArrowDownRight}
                 trend={{ value: 2, isPositive: false }}
               />
               <StatsCard
-                title="Net Profit"
+                title={t('dashboard.netProfit')}
                 value="$3,075"
                 icon={BarChart}
                 trend={{ value: 10, isPositive: true }}
@@ -131,10 +134,10 @@ const Dashboard = ({ userRole }: DashboardProps) => {
           <Card className="animated-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-md font-medium">
-                {userRole === 'accountant' ? 'Revenue Overview' : 'Cash Flow Overview'}
+                {userRole === 'accountant' ? t('dashboard.revenueOverview') : t('dashboard.cashFlowOverview')}
               </CardTitle>
               <Button variant="ghost" size="sm" className="h-8 text-xs">
-                View Details
+                {t('dashboard.viewDetails')}
               </Button>
             </CardHeader>
             <CardContent className="pt-4">
@@ -184,10 +187,10 @@ const Dashboard = ({ userRole }: DashboardProps) => {
           <Card className="animated-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-md font-medium">
-                {userRole === 'accountant' ? 'Client Industry Distribution' : 'Expense Categories'}
+                {userRole === 'accountant' ? t('dashboard.clientIndustryDistribution') : t('dashboard.expenseCategories')}
               </CardTitle>
               <Button variant="ghost" size="sm" className="h-8 text-xs">
-                View Details
+                {t('dashboard.viewDetails')}
               </Button>
             </CardHeader>
             <CardContent className="pt-4">
@@ -227,10 +230,10 @@ const Dashboard = ({ userRole }: DashboardProps) => {
           <Card className="animated-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-md font-medium">
-                Recent Client Activity
+                {t('dashboard.recentClientActivity')}
               </CardTitle>
               <Button variant="ghost" size="sm" className="h-8 text-xs">
-                View All
+                {t('dashboard.viewAll')}
               </Button>
             </CardHeader>
             <CardContent>
@@ -246,11 +249,11 @@ const Dashboard = ({ userRole }: DashboardProps) => {
                         <p className="text-xs text-muted-foreground">2 hours ago</p>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
-                        {i === 1 ? "Updated tax documents" : i === 2 ? "Added new transaction records" : "Requested financial report"}
+                        {i === 1 ? t('dashboard.updatedTaxDocuments') : i === 2 ? t('dashboard.addedNewTransactionRecords') : t('dashboard.requestedFinancialReport')}
                       </p>
                     </div>
                     <Button variant="outline" size="sm" className="shrink-0">
-                      View
+                      {t('dashboard.view')}
                     </Button>
                   </div>
                 ))}
@@ -263,10 +266,10 @@ const Dashboard = ({ userRole }: DashboardProps) => {
           <Card className="animated-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-md font-medium">
-                Recent Transactions
+                {t('dashboard.recentTransactions')}
               </CardTitle>
               <Button variant="ghost" size="sm" className="h-8 text-xs">
-                View All
+                {t('dashboard.viewAll')}
               </Button>
             </CardHeader>
             <CardContent>
@@ -283,12 +286,12 @@ const Dashboard = ({ userRole }: DashboardProps) => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="font-medium truncate">
-                          {i === 1 ? "Office Supplies" : i === 2 ? "Client Payment" : "Utilities Bill"}
+                          {i === 1 ? t('dashboard.officeSupplies') : i === 2 ? t('dashboard.clientPayment') : t('dashboard.utilitiesBill')}
                         </p>
                         <p className="text-xs text-muted-foreground">Today</p>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
-                        {i === 1 ? "Office Depot" : i === 2 ? "Tech Solutions Inc." : "City Power Co."}
+                        {i === 1 ? t('dashboard.officeDepot') : i === 2 ? t('dashboard.techSolutionsInc') : t('dashboard.cityPowerCo')}
                       </p>
                     </div>
                     <p className={`shrink-0 font-medium ${i % 2 === 0 ? 'text-green-600' : 'text-red-600'}`}>

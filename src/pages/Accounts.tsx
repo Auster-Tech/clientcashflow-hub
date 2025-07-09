@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +34,7 @@ import {
   Search 
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 // Mock data for accounts
 const mockAccounts = [
@@ -99,6 +99,7 @@ interface AccountsProps {
 }
 
 const Accounts = ({ userRole }: AccountsProps) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
   const { toast } = useToast();
@@ -144,59 +145,59 @@ const Accounts = ({ userRole }: AccountsProps) => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Accounts</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('accounts.title')}</h1>
             <p className="text-muted-foreground">
-              Manage your financial accounts
+              {t('accounts.subtitle')}
             </p>
           </div>
           <Button onClick={() => setIsAddAccountOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
-            Add Account
+            {t('accounts.addAccount')}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard 
-            title="Total Assets"
+            title={t('accounts.totalAssets')}
             value={new Intl.NumberFormat("en-US", {
               style: "currency",
               currency: "USD",
             }).format(totalAssets)}
             icon={DollarSign}
-            description="Sum of all positive balances"
+            description={t('accounts.sumOfAllPositiveBalances')}
             trend={{ 
               value: "+5.2%", 
-              label: "from last month",
+              label: t('accounts.fromLastMonth'),
               positive: true
             }}
           />
           
           <StatsCard 
-            title="Total Liabilities"
+            title={t('accounts.totalLiabilities')}
             value={new Intl.NumberFormat("en-US", {
               style: "currency",
               currency: "USD",
             }).format(totalLiabilities)}
             icon={DollarSign}
-            description="Sum of all negative balances"
+            description={t('accounts.sumOfAllNegativeBalances')}
             trend={{ 
               value: "-2.1%", 
-              label: "from last month",
+              label: t('accounts.fromLastMonth'),
               positive: true
             }}
           />
           
           <StatsCard 
-            title="Net Worth"
+            title={t('accounts.netWorth')}
             value={new Intl.NumberFormat("en-US", {
               style: "currency",
               currency: "USD",
             }).format(netWorth)}
             icon={Wallet}
-            description="Assets minus Liabilities"
+            description={t('accounts.assetsMinusLiabilities')}
             trend={{ 
               value: "+8.4%", 
-              label: "from last month",
+              label: t('accounts.fromLastMonth'),
               positive: true
             }}
           />
@@ -207,7 +208,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search accounts..."
+              placeholder={t('accounts.searchAccounts')}
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -234,7 +235,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
                   variant="outline" 
                   className="bg-green-50 text-green-700 hover:bg-green-50"
                 >
-                  Active
+                  {t('accounts.active')}
                 </Badge>
               </CardHeader>
               <CardContent>
@@ -246,15 +247,15 @@ const Accounts = ({ userRole }: AccountsProps) => {
                     }).format(account.balance)}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {account.type.charAt(0).toUpperCase() + account.type.slice(1)} Account
+                    {t(`accounts.${account.type}`)} {t('accounts.account')}
                   </p>
                 </div>
                 <div className="mt-4 flex justify-end gap-2">
                   <Button size="sm" variant="outline">
-                    View Transactions
+                    {t('accounts.viewTransactions')}
                   </Button>
                   <Button size="sm">
-                    Manage
+                    {t('accounts.manage')}
                   </Button>
                 </div>
               </CardContent>
@@ -267,13 +268,13 @@ const Accounts = ({ userRole }: AccountsProps) => {
       <Dialog open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Add New Account</DialogTitle>
+            <DialogTitle>{t('accounts.addNewAccount')}</DialogTitle>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="account-name" className="text-right">
-                Name
+                {t('accounts.accountName')}
               </Label>
               <Input
                 id="account-name"
@@ -284,36 +285,36 @@ const Accounts = ({ userRole }: AccountsProps) => {
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="account-type" className="text-right">
-                Type
+                {t('accounts.accountType')}
               </Label>
               <Select>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select account type" />
+                  <SelectValue placeholder={t('accounts.selectAccountType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="checking">Checking</SelectItem>
-                  <SelectItem value="savings">Savings</SelectItem>
-                  <SelectItem value="credit">Credit Card</SelectItem>
-                  <SelectItem value="investment">Investment</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="checking">{t('accounts.checking')}</SelectItem>
+                  <SelectItem value="savings">{t('accounts.savings')}</SelectItem>
+                  <SelectItem value="credit">{t('accounts.credit')}</SelectItem>
+                  <SelectItem value="investment">{t('accounts.investment')}</SelectItem>
+                  <SelectItem value="cash">{t('accounts.cash')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="institution" className="text-right">
-                Institution
+                {t('accounts.institution')}
               </Label>
               <Input
                 id="institution"
-                placeholder="e.g. Bank of America"
+                placeholder={t('accounts.enterInstitution')}
                 className="col-span-3"
               />
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="initial-balance" className="text-right">
-                Balance
+                {t('accounts.balance')}
               </Label>
               <Input
                 id="initial-balance"
@@ -326,17 +327,17 @@ const Accounts = ({ userRole }: AccountsProps) => {
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="currency" className="text-right">
-                Currency
+                {t('accounts.currency')}
               </Label>
               <Select defaultValue="USD">
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select currency" />
+                  <SelectValue placeholder={t('accounts.selectCurrency')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">USD - US Dollar</SelectItem>
-                  <SelectItem value="EUR">EUR - Euro</SelectItem>
-                  <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                  <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                  <SelectItem value="USD">{t('accounts.usd')}</SelectItem>
+                  <SelectItem value="EUR">{t('accounts.eur')}</SelectItem>
+                  <SelectItem value="GBP">{t('accounts.gbp')}</SelectItem>
+                  <SelectItem value="CAD">{t('accounts.cad')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -344,16 +345,16 @@ const Accounts = ({ userRole }: AccountsProps) => {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddAccountOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={() => {
               setIsAddAccountOpen(false);
               toast({
-                title: "Account added",
-                description: "The new account has been added successfully.",
+                title: t('toast.accountAdded'),
+                description: t('toast.accountAddedDesc'),
               });
             }}>
-              Add Account
+              {t('accounts.addAccount')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 // Mock data for transactions
 const mockTransactions = [
@@ -158,6 +159,7 @@ interface TransactionsProps {
 }
 
 const Transactions = ({ userRole }: TransactionsProps) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isUploadCSVOpen, setIsUploadCSVOpen] = useState(false);
@@ -169,7 +171,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       accessorKey: "date",
       header: ({ column }: any) => (
         <div className="flex items-center">
-          Date
+          {t('common.date')}
           <ArrowUpDown 
             className="ml-2 h-4 w-4 cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -179,13 +181,13 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     },
     {
       accessorKey: "description",
-      header: "Description",
+      header: t('common.description'),
     },
     {
       accessorKey: "amount",
       header: ({ column }: any) => (
         <div className="flex items-center">
-          Amount
+          {t('common.amount')}
           <ArrowUpDown 
             className="ml-2 h-4 w-4 cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -209,15 +211,15 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     },
     {
       accessorKey: "category",
-      header: "Category",
+      header: t('transactions.category'),
     },
     {
       accessorKey: "account",
-      header: "Account",
+      header: t('transactions.account'),
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: t('common.status'),
       cell: ({ row }: any) => {
         const status = row.getValue("status");
         return (
@@ -229,7 +231,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
                 : "bg-yellow-50 text-yellow-700 hover:bg-yellow-50"
             }
           >
-            {status === "completed" ? "Completed" : "Pending"}
+            {status === "completed" ? t('transactions.completed') : t('transactions.pending')}
           </Badge>
         );
       },
@@ -246,28 +248,28 @@ const Transactions = ({ userRole }: TransactionsProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="flex items-center cursor-pointer">
                 <FileText className="mr-2 h-4 w-4" />
-                View Details
+                {t('transactions.viewDetails')}
               </DropdownMenuItem>
               <DropdownMenuItem className="flex items-center cursor-pointer">
                 <Edit className="mr-2 h-4 w-4" />
-                Edit Transaction
+                {t('transactions.editTransaction')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="flex items-center text-destructive focus:text-destructive cursor-pointer"
                 onClick={() => {
                   toast({
-                    title: "Transaction deleted",
-                    description: "The transaction has been removed successfully.",
+                    title: t('toast.transactionDeleted'),
+                    description: t('toast.transactionDeletedDesc'),
                   });
                 }}
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Delete Transaction
+                {t('transactions.deleteTransaction')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -295,9 +297,9 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('transactions.title')}</h1>
             <p className="text-muted-foreground">
-              View and manage all financial transactions
+              {t('transactions.subtitle')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -307,11 +309,11 @@ const Transactions = ({ userRole }: TransactionsProps) => {
               className="gap-2"
             >
               <Upload className="h-4 w-4" />
-              Import CSV
+              {t('transactions.importCSV')}
             </Button>
             <Button onClick={() => setIsAddTransactionOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              Add Transaction
+              {t('transactions.addTransaction')}
             </Button>
           </div>
         </div>
@@ -321,7 +323,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search transactions..."
+              placeholder={t('common.search') + "..."}
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -334,29 +336,29 @@ const Transactions = ({ userRole }: TransactionsProps) => {
                 <SelectValue placeholder="Transaction type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Transactions</SelectItem>
-                <SelectItem value="income">Income</SelectItem>
-                <SelectItem value="expense">Expenses</SelectItem>
+                <SelectItem value="all">{t('transactions.allTransactions')}</SelectItem>
+                <SelectItem value="income">{t('transactions.income')}</SelectItem>
+                <SelectItem value="expense">{t('transactions.expenses')}</SelectItem>
               </SelectContent>
             </Select>
             
             <Button variant="outline" className="gap-2">
               <Filter className="h-4 w-4" />
-              More Filters
+              {t('transactions.moreFilters')}
             </Button>
             
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
-              Export
+              {t('common.export')}
             </Button>
           </div>
         </div>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Transaction History</CardTitle>
+            <CardTitle>{t('transactions.transactionHistory')}</CardTitle>
             <CardDescription>
-              Showing {filteredTransactions.length} transactions
+              {t('transactions.showingTransactions').replace('{count}', filteredTransactions.length.toString())}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -372,12 +374,12 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Add New Transaction</DialogTitle>
+            <DialogTitle>{t('transactions.addTransaction')}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="manual" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-              <TabsTrigger value="upload">Upload CSV</TabsTrigger>
+              <TabsTrigger value="manual">{t('transactions.manualEntry')}</TabsTrigger>
+              <TabsTrigger value="upload">{t('transactions.uploadCSV')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="manual">
@@ -385,15 +387,15 @@ const Transactions = ({ userRole }: TransactionsProps) => {
                 onSubmit={() => {
                   setIsAddTransactionOpen(false);
                   toast({
-                    title: "Transaction added",
-                    description: "The transaction has been added successfully.",
+                    title: t('toast.transactionAdded'),
+                    description: t('toast.transactionAddedDesc'),
                   });
                 }}
                 onCancel={() => setIsAddTransactionOpen(false)}
-                accounts={mockAccounts}
-                categories={mockCategories}
-                costCenters={mockCostCenters}
-                partners={mockPartners}
+                accounts={[]}
+                categories={[]}
+                costCenters={[]}
+                partners={[]}
               />
             </TabsContent>
             
@@ -402,8 +404,8 @@ const Transactions = ({ userRole }: TransactionsProps) => {
                 onUpload={() => {
                   setIsAddTransactionOpen(false);
                   toast({
-                    title: "CSV uploaded",
-                    description: "The transactions have been imported successfully.",
+                    title: t('toast.csvUploaded'),
+                    description: t('toast.csvUploadedDesc'),
                   });
                 }}
                 onCancel={() => setIsAddTransactionOpen(false)}
@@ -417,14 +419,14 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       <Dialog open={isUploadCSVOpen} onOpenChange={setIsUploadCSVOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Import Transactions from CSV</DialogTitle>
+            <DialogTitle>{t('transactions.importTransactionsFromCSV')}</DialogTitle>
           </DialogHeader>
           <UploadCSV 
             onUpload={() => {
               setIsUploadCSVOpen(false);
               toast({
-                title: "CSV uploaded",
-                description: "The transactions have been imported successfully.",
+                title: t('toast.csvUploaded'),
+                description: t('toast.csvUploadedDesc'),
               });
             }}
             onCancel={() => setIsUploadCSVOpen(false)}

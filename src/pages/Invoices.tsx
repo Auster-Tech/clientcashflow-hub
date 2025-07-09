@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 interface InvoicesProps {
   userRole?: UserRole;
@@ -78,6 +79,7 @@ const mockInvoices: Invoice[] = [
 ];
 
 const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
+  const { t } = useTranslation();
   const { selectedClient } = useClient();
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -92,15 +94,15 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t('invoices.title')}</h1>
               <p className="text-muted-foreground">
-                Manage your client invoices
+                {t('invoices.manageClientInvoices')}
               </p>
             </div>
             <ClientSelector userRole={userRole} />
           </div>
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Please select a client to manage invoices.</p>
+            <p className="text-muted-foreground">{t('invoices.selectClient')}</p>
           </div>
         </div>
       </DashboardLayout>
@@ -124,8 +126,8 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   const handleDeleteInvoice = (invoiceId: string) => {
     setInvoices(prev => prev.filter(invoice => invoice.id !== invoiceId));
     toast({
-      title: "Invoice deleted",
-      description: "The invoice has been successfully deleted.",
+      title: t('toast.invoiceDeleted'),
+      description: t('toast.invoiceDeletedDesc'),
     });
   };
 
@@ -139,8 +141,8 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         )
       );
       toast({
-        title: "Invoice updated",
-        description: "The invoice has been successfully updated.",
+        title: t('toast.invoiceUpdated'),
+        description: t('toast.invoiceUpdatedDesc'),
       });
     } else {
       const newInvoice: Invoice = {
@@ -149,8 +151,8 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
       };
       setInvoices(prev => [...prev, newInvoice]);
       toast({
-        title: "Invoice created",
-        description: "The new invoice has been successfully created.",
+        title: t('toast.invoiceCreated'),
+        description: t('toast.invoiceCreatedDesc'),
       });
     }
     setIsFormOpen(false);
@@ -174,19 +176,19 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     setIsUploadOpen(false);
     
     toast({
-      title: "Invoices imported",
-      description: `${newInvoices.length} invoices have been successfully imported from CSV.`,
+      title: t('toast.invoicesImported'),
+      description: t('toast.invoicesImportedDesc').replace('{count}', newInvoices.length.toString()),
     });
   };
 
   const columns: ColumnDef<Invoice>[] = [
     {
       accessorKey: 'number',
-      header: 'Invoice #',
+      header: t('invoices.number'),
     },
     {
       accessorKey: 'date',
-      header: 'Date',
+      header: t('invoices.date'),
       cell: ({ row }) => {
         const date = row.getValue('date') as string;
         return format(new Date(date), 'MMM dd, yyyy');
@@ -194,7 +196,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     },
     {
       accessorKey: 'dueDate',
-      header: 'Due Date',
+      header: t('invoices.dueDate'),
       cell: ({ row }) => {
         const date = row.getValue('dueDate') as string;
         return format(new Date(date), 'MMM dd, yyyy');
@@ -202,7 +204,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     },
     {
       accessorKey: 'amount',
-      header: 'Amount',
+      header: t('invoices.amount'),
       cell: ({ row }) => {
         const amount = row.getValue('amount') as number;
         return `$${amount.toLocaleString()}`;
@@ -210,7 +212,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: ({ row }) => {
         const status = row.getValue('status') as string;
         const statusColors = {
@@ -223,18 +225,18 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'
           }`}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {t(`invoices.${status}`)}
           </span>
         );
       },
     },
     {
       accessorKey: 'description',
-      header: 'Description',
+      header: t('common.description'),
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       cell: ({ row }) => {
         const invoice = row.original;
         return (
@@ -246,13 +248,13 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
-                Edit
+                {t('common.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => handleDeleteInvoice(invoice.id)}
                 className="text-red-600"
               >
-                Delete
+                {t('common.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -271,9 +273,9 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('invoices.title')}</h1>
             <p className="text-muted-foreground">
-              Manage your client invoices
+              {t('invoices.manageClientInvoices')}
               {selectedClient && ` for ${selectedClient.name}`}
             </p>
           </div>
@@ -282,11 +284,11 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
             <div className="flex gap-2">
               <Button onClick={handleUploadCSV} variant="outline" className="gap-2">
                 <Upload className="h-4 w-4" />
-                Upload CSV
+                {t('common.upload')}
               </Button>
               <Button onClick={handleAddInvoice} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Add Invoice
+                {t('invoices.add')}
               </Button>
             </div>
           </div>
@@ -295,35 +297,35 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
           <StatsCard
-            title="Total Invoices"
+            title={t('invoices.total')}
             value={invoices.length}
             icon={FileText}
-            description="All invoices"
+            description={t('invoices.allInvoices')}
           />
           <StatsCard
-            title="Total Amount"
+            title={t('invoices.amount')}
             value={`$${totalAmount.toLocaleString()}`}
             icon={DollarSign}
-            description="Total invoice value"
+            description={t('invoices.totalInvoiceValue')}
           />
           <StatsCard
-            title="Paid Invoices"
+            title={t('invoices.paid')}
             value={paidInvoices.length}
             icon={FileText}
-            description="Successfully paid"
+            description={t('invoices.successfullyPaid')}
             trend={{
               value: `${Math.round((paidInvoices.length / invoices.length) * 100)}%`,
-              label: "of total"
+              label: t('invoices.ofTotal')
             }}
           />
           <StatsCard
-            title="Overdue"
+            title={t('invoices.overdue')}
             value={overdueInvoices.length}
             icon={Clock}
-            description="Needs attention"
+            description={t('invoices.needsAttention')}
             trend={{
               value: `${Math.round((overdueInvoices.length / invoices.length) * 100)}%`,
-              label: "of total"
+              label: t('invoices.ofTotal')
             }}
           />
         </div>
@@ -334,7 +336,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
             columns={columns}
             data={invoices}
             searchColumn="number"
-            searchPlaceholder="Search invoices..."
+            searchPlaceholder={t('invoices.searchInvoices')}
           />
         </div>
 
@@ -343,7 +345,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {editingInvoice ? 'Edit Invoice' : 'Add New Invoice'}
+                {editingInvoice ? t('invoices.editInvoice') : t('invoices.addNewInvoice')}
               </DialogTitle>
             </DialogHeader>
             <InvoiceForm
@@ -358,7 +360,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Upload Invoices CSV</DialogTitle>
+              <DialogTitle>{t('invoices.uploadInvoicesCSV')}</DialogTitle>
             </DialogHeader>
             <UploadCSV
               onUpload={handleCSVUpload}
