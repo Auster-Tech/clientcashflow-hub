@@ -217,7 +217,10 @@ export default function Categories({ userRole }: CategoriesProps) {
                   <DialogHeader>
                     <DialogTitle>{t('common.upload')}</DialogTitle>
                   </DialogHeader>
-                  <UploadCSV onUpload={handleUpload} />
+                  <UploadCSV 
+                    onUpload={handleUpload}
+                    onCancel={() => setUploadDialogOpen(false)}
+                  />
                 </DialogContent>
               </Dialog>
 
@@ -267,8 +270,8 @@ export default function Categories({ userRole }: CategoriesProps) {
           <DataTable
             columns={columns}
             data={filteredCategories}
-            searchTerm={searchTerm}
-            onSearch={setSearchTerm}
+            searchColumn="name"
+            searchPlaceholder={t('common.search')}
           />
         </div>
       </div>
