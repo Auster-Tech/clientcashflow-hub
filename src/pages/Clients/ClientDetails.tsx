@@ -21,6 +21,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 // Mock client data for display
 const mockClient: ClientCompany = {
@@ -53,6 +54,7 @@ const mockUsers: User[] = [
 ];
 
 const ClientDetails = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState('overview');
   
@@ -74,11 +76,11 @@ const ClientDetails = () => {
           <div className="ml-auto flex gap-2">
             <Button variant="outline" className="gap-2">
               <Edit className="h-4 w-4" />
-              Edit Client
+              {t('clients.editClient')}
             </Button>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Add User
+              {t('clientDetails.addUser')}
             </Button>
           </div>
         </div>
@@ -97,27 +99,27 @@ const ClientDetails = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="h-5 w-5 text-primary" />
-                    Company Information
+                    {t('clientDetails.companyInformation')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Industry</p>
+                      <p className="text-sm text-muted-foreground">{t('clients.industry')}</p>
                       <p className="font-medium">{mockClient.industry}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Fiscal Year</p>
+                      <p className="text-sm text-muted-foreground">{t('clients.fiscalYear')}</p>
                       <p className="font-medium">{mockClient.fiscalYear}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Status</p>
+                      <p className="text-sm text-muted-foreground">{t('common.status')}</p>
                       <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
-                        Active
+                        {t('clients.active')}
                       </Badge>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Client Since</p>
+                      <p className="text-sm text-muted-foreground">{t('clientDetails.clientSince')}</p>
                       <p className="font-medium">January 2022</p>
                     </div>
                   </div>
@@ -142,7 +144,7 @@ const ClientDetails = () => {
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Address</p>
+                        <p className="text-sm text-muted-foreground">{t('clients.address')}</p>
                         <p className="font-medium">{mockClient.address}</p>
                       </div>
                     </div>
@@ -154,10 +156,10 @@ const ClientDetails = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-primary" />
-                    Client Users
+                    {t('clientDetails.clientUsers')}
                   </CardTitle>
                   <CardDescription>
-                    Users associated with this client
+                    {t('clientDetails.usersAssociated')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -172,7 +174,7 @@ const ClientDetails = () => {
                   ))}
                   <Button variant="outline" className="w-full gap-2">
                     <Plus className="h-4 w-4" />
-                    Add User
+                    {t('clientDetails.addUser')}
                   </Button>
                 </CardContent>
               </Card>
@@ -182,10 +184,10 @@ const ClientDetails = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
-                  Recent Activity
+                  {t('clientDetails.recentActivity')}
                 </CardTitle>
                 <CardDescription>
-                  Recent financial activities and document updates
+                  {t('clientDetails.recentFinancialActivities')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -200,9 +202,9 @@ const ClientDetails = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="font-medium truncate">
-                            {i === 1 ? "Quarterly report uploaded" : 
-                             i === 2 ? "Tax filing deadline approaching" : 
-                             "New invoice created"}
+                            {i === 1 ? t('clientDetails.quarterlyReportUploaded') : 
+                             i === 2 ? t('clientDetails.taxFilingDeadline') : 
+                             t('clientDetails.newInvoiceCreated')}
                           </p>
                           <p className="text-xs text-muted-foreground">{i} day{i > 1 ? 's' : ''} ago</p>
                         </div>
@@ -213,7 +215,7 @@ const ClientDetails = () => {
                         </p>
                       </div>
                       <Button variant="outline" size="sm" className="shrink-0">
-                        View
+                        {t('dashboard.view')}
                       </Button>
                     </div>
                   ))}
@@ -226,12 +228,12 @@ const ClientDetails = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Client Users</CardTitle>
-                  <CardDescription>Manage users associated with this client</CardDescription>
+                  <CardTitle>{t('clientDetails.clientUsers')}</CardTitle>
+                  <CardDescription>{t('clientDetails.manageUsers')}</CardDescription>
                 </div>
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Add User
+                  {t('clientDetails.addUser')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -252,7 +254,7 @@ const ClientDetails = () => {
                           {user.role === 'client-admin' ? 'Admin' : 'User'}
                         </Badge>
                         <Button variant="outline" size="sm">
-                          Manage
+                          {t('accounts.manage')}
                         </Button>
                       </div>
                     </div>
@@ -266,12 +268,12 @@ const ClientDetails = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Client Documents</CardTitle>
-                  <CardDescription>Upload and manage documents for this client</CardDescription>
+                  <CardTitle>{t('clientDetails.clientDocuments')}</CardTitle>
+                  <CardDescription>{t('clientDetails.uploadAndManage')}</CardDescription>
                 </div>
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Upload Document
+                  {t('clientDetails.uploadDocument')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -285,8 +287,8 @@ const ClientDetails = () => {
           <TabsContent value="activity" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Activity Log</CardTitle>
-                <CardDescription>Review all activity for this client</CardDescription>
+                <CardTitle>{t('clientDetails.activityLog')}</CardTitle>
+                <CardDescription>{t('clientDetails.reviewAllActivity')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

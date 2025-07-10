@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'en' | 'pt';
@@ -246,6 +245,64 @@ const translations = {
     'toast.invoiceDeletedDesc': 'The invoice has been successfully deleted.',
     'toast.invoicesImported': 'Invoices imported',
     'toast.invoicesImportedDesc': '{count} invoices have been successfully imported from CSV.',
+    
+    // Clients
+    'clients.title': 'Clients',
+    'clients.subtitle': 'Manage your client companies and their users',
+    'clients.addClient': 'Add Client',
+    'clients.totalClients': 'Total Clients',
+    'clients.activeClients': 'Active Clients',
+    'clients.newThisMonth': 'New This Month',
+    'clients.searchClients': 'Search clients...',
+    'clients.viewDetails': 'View Details',
+    'clients.editClient': 'Edit Client',
+    'clients.deleteClient': 'Delete Client',
+    'clients.addNewClient': 'Add New Client',
+    'clients.companyName': 'Company Name',
+    'clients.industry': 'Industry',
+    'clients.fiscalYear': 'Fiscal Year',
+    'clients.address': 'Address',
+    'clients.active': 'Active',
+    'clients.inactive': 'Inactive',
+    
+    // Client Details
+    'clientDetails.companyInformation': 'Company Information',
+    'clientDetails.clientUsers': 'Client Users',
+    'clientDetails.recentActivity': 'Recent Activity',
+    'clientDetails.clientSince': 'Client Since',
+    'clientDetails.usersAssociated': 'Users associated with this client',
+    'clientDetails.recentFinancialActivities': 'Recent financial activities and document updates',
+    'clientDetails.quarterlyReportUploaded': 'Quarterly report uploaded',
+    'clientDetails.taxFilingDeadline': 'Tax filing deadline approaching',
+    'clientDetails.newInvoiceCreated': 'New invoice created',
+    'clientDetails.manageUsers': 'Manage users associated with this client',
+    'clientDetails.clientDocuments': 'Client Documents',
+    'clientDetails.uploadAndManage': 'Upload and manage documents for this client',
+    'clientDetails.uploadDocument': 'Upload Document',
+    'clientDetails.activityLog': 'Activity Log',
+    'clientDetails.reviewAllActivity': 'Review all activity for this client',
+    'clientDetails.addUser': 'Add User',
+    
+    // Cashflow
+    'cashflow.title': 'Cash Flow',
+    'cashflow.subtitle': 'Monitor your cash flow and financial trends',
+    'cashflow.netCashFlow': 'Net Cash Flow',
+    'cashflow.totalInflow': 'Total Inflow',
+    'cashflow.totalOutflow': 'Total Outflow',
+    'cashflow.fromLastMonth': 'from last month',
+    'cashflow.cashFlowTrend': 'Cash Flow Trend',
+    'cashflow.monthlyBreakdown': 'Monthly Breakdown',
+    'cashflow.inflow': 'Inflow',
+    'cashflow.outflow': 'Outflow',
+    'cashflow.netFlow': 'Net Flow',
+    'cashflow.projectedCashFlow': 'Projected Cash Flow',
+    'cashflow.next6Months': 'Next 6 months projection',
+    'cashflow.viewReport': 'View Report',
+    
+    // 404 Page
+    'notFound.title': 'Page not found',
+    'notFound.description': 'Sorry, we couldn\'t find the page you\'re looking for.',
+    'notFound.goBack': 'Go back home',
   },
   pt: {
     // Navigation
@@ -483,6 +540,64 @@ const translations = {
     'toast.invoiceDeletedDesc': 'A fatura foi excluída com sucesso.',
     'toast.invoicesImported': 'Faturas importadas',
     'toast.invoicesImportedDesc': '{count} faturas foram importadas com sucesso do CSV.',
+    
+    // Clients
+    'clients.title': 'Clientes',
+    'clients.subtitle': 'Gerencie suas empresas clientes e seus usuários',
+    'clients.addClient': 'Adicionar Cliente',
+    'clients.totalClients': 'Total de Clientes',
+    'clients.activeClients': 'Clientes Ativos',
+    'clients.newThisMonth': 'Novos Este Mês',
+    'clients.searchClients': 'Pesquisar clientes...',
+    'clients.viewDetails': 'Ver Detalhes',
+    'clients.editClient': 'Editar Cliente',
+    'clients.deleteClient': 'Excluir Cliente',
+    'clients.addNewClient': 'Adicionar Novo Cliente',
+    'clients.companyName': 'Nome da Empresa',
+    'clients.industry': 'Setor',
+    'clients.fiscalYear': 'Ano Fiscal',
+    'clients.address': 'Endereço',
+    'clients.active': 'Ativo',
+    'clients.inactive': 'Inativo',
+    
+    // Client Details
+    'clientDetails.companyInformation': 'Informações da Empresa',
+    'clientDetails.clientUsers': 'Usuários do Cliente',
+    'clientDetails.recentActivity': 'Atividade Recente',
+    'clientDetails.clientSince': 'Cliente Desde',
+    'clientDetails.usersAssociated': 'Usuários associados a este cliente',
+    'clientDetails.recentFinancialActivities': 'Atividades financeiras recentes e atualizações de documentos',
+    'clientDetails.quarterlyReportUploaded': 'Relatório trimestral carregado',
+    'clientDetails.taxFilingDeadline': 'Prazo de declaração fiscal se aproximando',
+    'clientDetails.newInvoiceCreated': 'Nova fatura criada',
+    'clientDetails.manageUsers': 'Gerenciar usuários associados a este cliente',
+    'clientDetails.clientDocuments': 'Documentos do Cliente',
+    'clientDetails.uploadAndManage': 'Carregar e gerenciar documentos para este cliente',
+    'clientDetails.uploadDocument': 'Carregar Documento',
+    'clientDetails.activityLog': 'Log de Atividades',
+    'clientDetails.reviewAllActivity': 'Revisar toda a atividade deste cliente',
+    'clientDetails.addUser': 'Adicionar Usuário',
+    
+    // Cashflow
+    'cashflow.title': 'Fluxo de Caixa',
+    'cashflow.subtitle': 'Monitore seu fluxo de caixa e tendências financeiras',
+    'cashflow.netCashFlow': 'Fluxo de Caixa Líquido',
+    'cashflow.totalInflow': 'Total de Entrada',
+    'cashflow.totalOutflow': 'Total de Saída',
+    'cashflow.fromLastMonth': 'do mês passado',
+    'cashflow.cashFlowTrend': 'Tendência do Fluxo de Caixa',
+    'cashflow.monthlyBreakdown': 'Divisão Mensal',
+    'cashflow.inflow': 'Entrada',
+    'cashflow.outflow': 'Saída',
+    'cashflow.netFlow': 'Fluxo Líquido',
+    'cashflow.projectedCashFlow': 'Fluxo de Caixa Projetado',
+    'cashflow.next6Months': 'Projeção dos próximos 6 meses',
+    'cashflow.viewReport': 'Ver Relatório',
+    
+    // 404 Page
+    'notFound.title': 'Página não encontrada',
+    'notFound.description': 'Desculpe, não conseguimos encontrar a página que você está procurando.',
+    'notFound.goBack': 'Voltar para o início',
   },
 };
 
