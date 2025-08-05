@@ -126,7 +126,7 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
           collapsed && !hovering ? "opacity-0 w-0" : "opacity-100"
         )}>
           <CreditCard className="h-6 w-6 text-sidebar-primary" />
-          <span className="font-semibold text-lg whitespace-nowrap">Finance Hub</span>
+          <span className="font-semibold text-lg whitespace-nowrap">Tesouraria Web</span>
         </div>
         <Button 
           variant="ghost" 

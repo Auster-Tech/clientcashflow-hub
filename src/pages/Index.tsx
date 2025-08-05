@@ -61,7 +61,7 @@ const Index = ({ onLogin }: IndexProps) => {
               {language === 'en' ? 'PT' : 'EN'}
             </Button>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Finance Hub</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Tesouraria Web</h1>
           <p className="text-muted-foreground">Your accounting and financial management solution</p>
         </div>
 
