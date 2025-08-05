@@ -88,12 +88,6 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
       icon: FileText,
       roles: ['accountant', 'client-admin', 'client-user'] 
     },
-    { 
-      titleKey: 'nav.settings', 
-      href: '/settings', 
-      icon: Settings,
-      roles: ['accountant', 'client-admin', 'client-user'] 
-    },
   ];
   
   // Filter navigation items based on user role
