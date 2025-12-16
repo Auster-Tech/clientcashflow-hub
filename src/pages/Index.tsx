@@ -45,12 +45,6 @@ const Index = ({ onLogin }: IndexProps) => {
       <div className="w-full max-w-md space-y-8 animate-blur-in">
         <div className="text-center space-y-2">
           <div className="flex justify-center items-center gap-4 mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-primary/10 blur-xl"></div>
-              <div className="relative bg-white rounded-full p-3 shadow-md">
-                <CreditCard className="h-8 w-8 text-primary" />
-              </div>
-            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -58,17 +52,17 @@ const Index = ({ onLogin }: IndexProps) => {
               className="gap-2"
             >
               <Globe className="h-4 w-4" />
-              {language === 'en' ? 'PT' : 'EN'}
+              {language === 'en' ? 'EN' : 'PT'}
             </Button>
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Tesouraria Web</h1>
-          <p className="text-muted-foreground">Your accounting and financial management solution</p>
+          <p className="text-muted-foreground">{t('index.subtitle')}</p>
         </div>
 
         <Tabs defaultValue="accountant" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="accountant">Accountant</TabsTrigger>
-            <TabsTrigger value="client-admin">Client</TabsTrigger>
+            <TabsTrigger value="accountant">{t('common.accountant')}</TabsTrigger>
+            <TabsTrigger value="client-admin">{t('common.client')}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="accountant">
@@ -76,17 +70,17 @@ const Index = ({ onLogin }: IndexProps) => {
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <Building className="h-5 w-5" />
-                  Accountant Login
+                  {t('index.acclogin')}
                 </CardTitle>
                 <CardDescription>
-                  Log in to manage your client accounts
+                  {t('index.acclogindesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <form onSubmit={(e) => handleSubmit(e, 'accountant')}>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="accountant-email">Email</Label>
+                      <Label htmlFor="accountant-email">{t('index.email')}</Label>
                       <Input 
                         id="accountant-email" 
                         type="email" 
@@ -98,9 +92,9 @@ const Index = ({ onLogin }: IndexProps) => {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="accountant-password">Password</Label>
+                        <Label htmlFor="accountant-password">{t('index.password')}</Label>
                         <Button variant="link" className="p-0 h-auto text-xs">
-                          Forgot password?
+                          {t('index.forgotpass')}
                         </Button>
                       </div>
                       <Input 
@@ -112,7 +106,7 @@ const Index = ({ onLogin }: IndexProps) => {
                       />
                     </div>
                     <Button type="submit" className="w-full">
-                      Login as Accountant
+                      {t("index.accloginbutton")}
                     </Button>
                   </div>
                 </form>
@@ -125,17 +119,17 @@ const Index = ({ onLogin }: IndexProps) => {
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <LineChart className="h-5 w-5" />
-                  Client Login
+                  {t('index.clilogin')}
                 </CardTitle>
                 <CardDescription>
-                  Log in to manage your company finances
+                  {t('index.clilogindesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <form onSubmit={(e) => handleSubmit(e, 'client-admin')}>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="client-email">Email</Label>
+                      <Label htmlFor="client-email">{t('index.email')}</Label>
                       <Input 
                         id="client-email" 
                         type="email" 
@@ -147,9 +141,9 @@ const Index = ({ onLogin }: IndexProps) => {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="client-password">Password</Label>
+                        <Label htmlFor="client-password">{t('index.password')}</Label>
                         <Button variant="link" className="p-0 h-auto text-xs">
-                          Forgot password?
+                          {t('index.forgotpass')}
                         </Button>
                       </div>
                       <Input 
@@ -161,7 +155,7 @@ const Index = ({ onLogin }: IndexProps) => {
                       />
                     </div>
                     <Button type="submit" className="w-full">
-                      Login as Client
+                      {t('index.cliloginbutton')}
                     </Button>
                   </div>
                 </form>
@@ -172,9 +166,9 @@ const Index = ({ onLogin }: IndexProps) => {
 
         <div className="mt-6 text-center text-sm text-muted-foreground">
           <p>
-            Need an account?{' '}
+            {t('index.needacc')+'   '}
             <Button variant="link" className="p-0 h-auto text-sm">
-              Contact your administrator
+              {t('common.contactadm')}
             </Button>
           </p>
         </div>

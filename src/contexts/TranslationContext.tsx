@@ -25,6 +25,7 @@ const translations = {
     
     // Common
     'common.client': 'Client',
+    'common.accountant': 'Accountant',
     'common.selectClient': 'Select a client',
     'common.add': 'Add',
     'common.edit': 'Edit',
@@ -46,6 +47,7 @@ const translations = {
     'common.downloadTemplate': 'Download Template',
     'common.date': 'Date',
     'common.amount': 'Amount',
+    'common.contactadm': 'Contact your administrator',
     
     // Forms
     'form.required': 'This field is required',
@@ -54,6 +56,19 @@ const translations = {
     'form.enterDescription': 'Enter description',
     'form.optional': 'Optional',
     
+    // Index
+    'index.subtitle': 'Your accounting and financial management solution',
+    'index.acclogin': 'Accountant Login',
+    'index.acclogindesc': 'Log in to manage your client accounts',
+    'index.accloginbutton': 'Login as Accountant',
+    'index.clilogin': 'Client Login',
+    'index.clilogindesc': 'Log in to manage your company finances',
+    'index.cliloginbutton': 'Login as Client',
+    'index.password': 'Password',
+    'index.email': 'Email',
+    'index.forgotpass': 'Forgot password?',
+    'index.needacc': 'Need an account?',
+
     // Dashboard
     'dashboard.title': 'Dashboard',
     'dashboard.subtitle': 'Overview of your',
@@ -320,6 +335,7 @@ const translations = {
     
     // Common
     'common.client': 'Cliente',
+    'common.accountant': 'Contador',
     'common.selectClient': 'Selecionar um cliente',
     'common.add': 'Adicionar',
     'common.edit': 'Editar',
@@ -341,6 +357,7 @@ const translations = {
     'common.downloadTemplate': 'Baixar Modelo',
     'common.date': 'Data',
     'common.amount': 'Valor',
+    'common.contactadm': 'Contacte o administrador',
     
     // Forms
     'form.required': 'Este campo é obrigatório',
@@ -348,6 +365,19 @@ const translations = {
     'form.enterName': 'Digite o nome',
     'form.enterDescription': 'Digite a descrição',
     'form.optional': 'Opcional',
+
+    // Index
+    'index.subtitle': 'Solução de gerenciamente contábil e financeiro',
+    'index.acclogin': 'Login Contador',
+    'index.acclogindesc': 'Entre para gerenciar as contas dos teus clentes',
+    'index.accloginbutton': 'Entrar como Contador',
+    'index.clilogin': 'Login Cliente',
+    'index.clilogindesc': 'Entre para gerenciar as finanças de tua empresa',
+    'index.cliloginbutton': 'Entre como Cliente',
+    'index.password': 'Senha',
+    'index.email': 'Email',
+    'index.forgotpass': 'Esqueceu a senha?',
+    'index.needacc': 'Precisa de uma conta?',
     
     // Dashboard
     'dashboard.title': 'Painel',
