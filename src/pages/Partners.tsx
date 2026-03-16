@@ -10,6 +10,7 @@ import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { UserRole, Partner } from '@/types';
+import { usePartners } from '@/hooks/useApi';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, Tag, TrendingUp, TrendingDown, Upload } from 'lucide-react';
 import {
@@ -30,58 +31,19 @@ interface PartnersProps {
   userRole?: UserRole;
 }
 
-// Mock data for partners
-const mockPartners: Partner[] = [
-  {
-    id: '1',
-    name: 'Acme Corporation',
-    type: 'supplier',
-    email: 'contact@acme.com',
-    phone: '+1-555-0123',
-    address: '123 Business St, City, State 12345'
-  },
-  {
-    id: '2',
-    name: 'Global Tech Solutions',
-    type: 'customer',
-    email: 'info@globaltech.com',
-    phone: '+1-555-0456',
-    address: '456 Tech Ave, City, State 67890'
-  },
-  {
-    id: '3',
-    name: 'Metro Consulting',
-    type: 'vendor',
-    email: 'hello@metro.com',
-    phone: '+1-555-0789'
-  },
-  {
-    id: '4',
-    name: 'Digital Innovations Inc',
-    type: 'customer',
-    email: 'contact@digitalinc.com',
-    phone: '+1-555-0321',
-    address: '789 Innovation Blvd, City, State 54321'
-  },
-  {
-    id: '5',
-    name: 'Office Supply Co',
-    type: 'supplier',
-    email: 'orders@officesupply.com',
-    phone: '+1-555-0654'
-  }
-];
-
 const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
-  const [partners, setPartners] = useState<Partner[]>(mockPartners);
+  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners();
+  const { data: partners = [], isLoading } = useGetAll();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
+  const deleteMutation = useDelete();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const { toast } = useToast();
 
-  // Show message for accountants who haven't selected a client
   if (userRole === 'accountant' && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
@@ -116,65 +78,49 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   };
 
   const handleDeletePartner = (partnerId: string) => {
-    setPartners(prev => prev.filter(partner => partner.id !== partnerId));
-    toast({
-      title: t('partners.title'),
-      description: t('common.delete'),
+    deleteMutation.mutate(partnerId, {
+      onSuccess: () => {
+        toast({ title: t('partners.title'), description: t('common.delete') });
+      },
     });
   };
 
   const handleFormSubmit = (partnerData: Omit<Partner, 'id'>) => {
     if (editingPartner) {
-      setPartners(prev => 
-        prev.map(partner => 
-          partner.id === editingPartner.id 
-            ? { ...editingPartner, ...partnerData }
-            : partner
-        )
-      );
-      toast({
-        title: t('partners.update'),
-        description: t('common.update'),
+      updateMutation.mutate({ id: editingPartner.id, data: partnerData }, {
+        onSuccess: () => {
+          toast({ title: t('partners.update'), description: t('common.update') });
+          setIsFormOpen(false);
+          setEditingPartner(null);
+        },
       });
     } else {
-      const newPartner: Partner = {
-        id: Date.now().toString(),
-        ...partnerData
-      };
-      setPartners(prev => [...prev, newPartner]);
-      toast({
-        title: t('partners.create'),
-        description: t('common.create'),
+      createMutation.mutate(partnerData as any, {
+        onSuccess: () => {
+          toast({ title: t('partners.create'), description: t('common.create') });
+          setIsFormOpen(false);
+          setEditingPartner(null);
+        },
       });
     }
-    setIsFormOpen(false);
-    setEditingPartner(null);
   };
 
   const handleCSVUpload = (csvData: any[]) => {
-    const newPartners: Partner[] = csvData.map((row, index) => ({
-      id: `csv-${Date.now()}-${index}`,
-      name: row.name || row.Name || '',
-      type: (row.type || row.Type || 'customer').toLowerCase(),
-      email: row.email || row.Email || '',
-      phone: row.phone || row.Phone || '',
-      address: row.address || row.Address || ''
-    })).filter(partner => partner.name);
-
-    setPartners(prev => [...prev, ...newPartners]);
-    setIsUploadOpen(false);
-    
-    toast({
-      title: t('partners.title'),
-      description: t('common.upload'),
+    csvData.forEach((row) => {
+      createMutation.mutate({
+        name: row.name || row.Name || '',
+        type: (row.type || row.Type || 'customer').toLowerCase(),
+        email: row.email || row.Email || '',
+        phone: row.phone || row.Phone || '',
+        address: row.address || row.Address || ''
+      } as any);
     });
+    setIsUploadOpen(false);
+    toast({ title: t('partners.title'), description: t('common.upload') });
   };
 
   const columns: ColumnDef<Partner>[] = [
-    {
-      accessorKey: 'name',
-      header: t('partners.name'),
-    },
+    { accessorKey: 'name', header: t('partners.name') },
     {
       accessorKey: 'type',
       header: t('common.type'),
@@ -194,14 +140,8 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
         );
       },
     },
-    {
-      accessorKey: 'email',
-      header: t('partners.email'),
-    },
-    {
-      accessorKey: 'phone',
-      header: t('partners.phone'),
-    },
+    { accessorKey: 'email', header: t('partners.email') },
+    { accessorKey: 'phone', header: t('partners.phone') },
     {
       id: 'actions',
       header: t('common.actions'),
@@ -218,10 +158,7 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
               <DropdownMenuItem onClick={() => handleEditPartner(partner)}>
                 {t('common.edit')}
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => handleDeletePartner(partner.id)}
-                className="text-red-600"
-              >
+              <DropdownMenuItem onClick={() => handleDeletePartner(partner.id)} className="text-red-600">
                 {t('common.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -238,7 +175,6 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('partners.title')}</h1>
@@ -262,70 +198,32 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <StatsCard
-            title={t('partners.total')}
-            value={partners.length}
-            icon={Tag}
-            description={t('partners.total')}
-          />
-          <StatsCard
-            title={t('partners.customers')}
-            value={customerPartners.length}
-            icon={TrendingUp}
-            description={t('partners.customers')}
-          />
-          <StatsCard
-            title={t('partners.suppliers')}
-            value={supplierPartners.length}
-            icon={TrendingDown}
-            description={t('partners.suppliers')}
-          />
-          <StatsCard
-            title="Vendors"
-            value={vendorPartners.length}
-            icon={Tag}
-            description="Vendor partners"
-          />
+          <StatsCard title={t('partners.total')} value={partners.length} icon={Tag} description={t('partners.total')} />
+          <StatsCard title={t('partners.customers')} value={customerPartners.length} icon={TrendingUp} description={t('partners.customers')} />
+          <StatsCard title={t('partners.suppliers')} value={supplierPartners.length} icon={TrendingDown} description={t('partners.suppliers')} />
+          <StatsCard title="Vendors" value={vendorPartners.length} icon={Tag} description="Vendor partners" />
         </div>
 
-        {/* Partners Table */}
         <div className="space-y-4">
-          <DataTable
-            columns={columns}
-            data={partners}
-            searchColumn="name"
-            searchPlaceholder={t('common.search')}
-          />
+          <DataTable columns={columns} data={partners} searchColumn="name" searchPlaceholder={t('common.search')} />
         </div>
 
-        {/* Partner Form Dialog */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                {editingPartner ? t('partners.edit') : t('partners.add')}
-              </DialogTitle>
+              <DialogTitle>{editingPartner ? t('partners.edit') : t('partners.add')}</DialogTitle>
             </DialogHeader>
-            <PartnerForm
-              partner={editingPartner}
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsFormOpen(false)}
-            />
+            <PartnerForm partner={editingPartner} onSubmit={handleFormSubmit} onCancel={() => setIsFormOpen(false)} />
           </DialogContent>
         </Dialog>
 
-        {/* CSV Upload Dialog */}
         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{t('common.upload')}</DialogTitle>
             </DialogHeader>
-            <UploadCSV
-              onUpload={handleCSVUpload}
-              onCancel={() => setIsUploadOpen(false)}
-            />
+            <UploadCSV onUpload={handleCSVUpload} onCancel={() => setIsUploadOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>

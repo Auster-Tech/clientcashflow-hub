@@ -15,34 +15,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowDown, ArrowUp, CalendarRange, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useCashflowData, useCashflowSummary } from "@/hooks/useApi";
 
 interface CashflowProps {
   userRole: UserRole;
 }
-
-// Mock data for cashflow
-const mockData = [
-  { month: "Jan", income: 12000, expenses: 8000, profit: 4000 },
-  { month: "Feb", income: 13500, expenses: 7800, profit: 5700 },
-  { month: "Mar", income: 15000, expenses: 9200, profit: 5800 },
-  { month: "Apr", income: 14000, expenses: 8700, profit: 5300 },
-  { month: "May", income: 16500, expenses: 9800, profit: 6700 },
-  { month: "Jun", income: 19000, expenses: 10500, profit: 8500 },
-  { month: "Jul", income: 17500, expenses: 11000, profit: 6500 },
-  { month: "Aug", income: 18000, expenses: 10200, profit: 7800 },
-  { month: "Sep", income: 21000, expenses: 12000, profit: 9000 },
-  { month: "Oct", income: 20000, expenses: 12500, profit: 7500 },
-  { month: "Nov", income: 19500, expenses: 11800, profit: 7700 },
-  { month: "Dec", income: 23000, expenses: 14000, profit: 9000 },
-];
 
 const Cashflow = ({ userRole }: CashflowProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
   const [period, setPeriod] = useState("yearly");
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const { data: cashflowData = [], isLoading } = useCashflowData(period);
+  const { data: summary } = useCashflowSummary();
 
-  // Show message for accountants who haven't selected a client
   if (userRole === 'accountant' && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
@@ -50,9 +36,7 @@ const Cashflow = ({ userRole }: CashflowProps) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{t('nav.cashflow')}</h1>
-              <p className="text-muted-foreground">
-                Track income, expenses, and profit over time
-              </p>
+              <p className="text-muted-foreground">Track income, expenses, and profit over time</p>
             </div>
             <ClientSelector userRole={userRole} />
           </div>
@@ -83,25 +67,15 @@ const Cashflow = ({ userRole }: CashflowProps) => {
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
-                  <CalendarRange className="h-4 w-4" />
-                  <span>{t('common.filter')}</span>
+                  <CalendarRange className="h-4 w-4" /><span>{t('common.filter')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
+                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
-            
             <Select defaultValue={period} onValueChange={setPeriod}>
-              <SelectTrigger className="h-8 w-[150px]">
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
+              <SelectTrigger className="h-8 w-[150px]"><SelectValue placeholder="Select period" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="monthly">Monthly</SelectItem>
                 <SelectItem value="quarterly">Quarterly</SelectItem>
@@ -109,55 +83,42 @@ const Cashflow = ({ userRole }: CashflowProps) => {
               </SelectContent>
             </Select>
           </div>
-          
           <Button variant="outline" size="sm" className="h-8 gap-1 self-start">
-            <Download className="h-4 w-4" />
-            <span>{t('common.export')}</span>
+            <Download className="h-4 w-4" /><span>{t('common.export')}</span>
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Income
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Income</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$235,000</div>
+              <div className="text-2xl font-bold">${summary?.totalIncome?.toLocaleString() || '0'}</div>
               <div className="flex items-center text-sm text-green-600">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                14.5% from last year
+                <ArrowUp className="h-4 w-4 mr-1" />{summary?.incomeChange || '0'}% from last year
               </div>
             </CardContent>
           </Card>
-          
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Expenses
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$126,000</div>
+              <div className="text-2xl font-bold">${summary?.totalExpenses?.toLocaleString() || '0'}</div>
               <div className="flex items-center text-sm text-red-600">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                8.2% from last year
+                <ArrowUp className="h-4 w-4 mr-1" />{summary?.expensesChange || '0'}% from last year
               </div>
             </CardContent>
           </Card>
-          
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Net Profit
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Net Profit</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$109,000</div>
+              <div className="text-2xl font-bold">${summary?.netProfit?.toLocaleString() || '0'}</div>
               <div className="flex items-center text-sm text-green-600">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                21.8% from last year
+                <ArrowUp className="h-4 w-4 mr-1" />{summary?.profitChange || '0'}% from last year
               </div>
             </CardContent>
           </Card>
@@ -168,27 +129,16 @@ const Cashflow = ({ userRole }: CashflowProps) => {
             <TabsTrigger value="chart">Chart</TabsTrigger>
             <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
           </TabsList>
-          
           <TabsContent value="chart" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Cash Flow Analysis</CardTitle>
-                <CardDescription>
-                  Income vs. Expenses vs. Profit ({period} view)
-                </CardDescription>
+                <CardDescription>Income vs. Expenses vs. Profit ({period} view)</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={mockData}
-                      margin={{
-                        top: 20,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
+                    <LineChart data={cashflowData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
@@ -203,7 +153,6 @@ const Cashflow = ({ userRole }: CashflowProps) => {
               </CardContent>
             </Card>
           </TabsContent>
-          
           <TabsContent value="breakdown" className="space-y-6">
             <Card>
               <CardHeader>
@@ -213,15 +162,7 @@ const Cashflow = ({ userRole }: CashflowProps) => {
               <CardContent>
                 <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={mockData}
-                      margin={{
-                        top: 20,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
+                    <BarChart data={cashflowData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
