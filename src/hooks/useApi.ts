@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import {
   accountsApi,
   categoriesApi,
@@ -11,26 +11,33 @@ import {
   cashflowApi,
   dashboardApi,
 } from '@/lib/api';
+import { Account, Category, CostCenter, Partner, Invoice, Transaction, Client, ClientCompany } from '@/types';
 
 // Generic CRUD hook factory
-function useCrudHooks(key: string, api: any) {
+function useCrudHooks<T extends { id: string }>(key: string, api: {
+  getAll: () => Promise<T[]>;
+  getById: (id: string) => Promise<T>;
+  create: (data: any) => Promise<T>;
+  update: (id: string, data: any) => Promise<T>;
+  delete: (id: string) => Promise<void>;
+}) {
   const queryClient = useQueryClient();
 
-  const useGetAll = () => useQuery({ queryKey: [key], queryFn: api.getAll });
-  const useGetById = (id: string) => useQuery({ queryKey: [key, id], queryFn: () => api.getById(id), enabled: !!id });
+  const useGetAll = (): UseQueryResult<T[]> => useQuery<T[]>({ queryKey: [key], queryFn: api.getAll });
+  const useGetById = (id: string) => useQuery<T>({ queryKey: [key, id], queryFn: () => api.getById(id), enabled: !!id });
 
   const useCreate = () => useMutation({
-    mutationFn: api.create,
+    mutationFn: (data: Omit<T, 'id'>) => api.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [key] }),
   });
 
   const useUpdate = () => useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => api.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<T> }) => api.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [key] }),
   });
 
   const useDelete = () => useMutation({
-    mutationFn: api.delete,
+    mutationFn: (id: string) => api.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [key] }),
   });
 
@@ -38,20 +45,20 @@ function useCrudHooks(key: string, api: any) {
 }
 
 // Resource hooks
-export const useAccounts = () => useCrudHooks('accounts', accountsApi);
-export const useCategories = () => useCrudHooks('categories', categoriesApi);
-export const useCostCenters = () => useCrudHooks('costCenters', costCentersApi);
-export const usePartners = () => useCrudHooks('partners', partnersApi);
-export const useInvoices = () => useCrudHooks('invoices', invoicesApi);
-export const useTransactions = () => useCrudHooks('transactions', transactionsApi);
-export const useClients = () => useCrudHooks('clients', clientsApi);
-export const useClientCompanies = () => useCrudHooks('clientCompanies', clientCompaniesApi);
+export const useAccounts = () => useCrudHooks<Account>('accounts', accountsApi as any);
+export const useCategories = () => useCrudHooks<Category>('categories', categoriesApi as any);
+export const useCostCenters = () => useCrudHooks<CostCenter>('costCenters', costCentersApi as any);
+export const usePartners = () => useCrudHooks<Partner>('partners', partnersApi as any);
+export const useInvoices = () => useCrudHooks<Invoice>('invoices', invoicesApi as any);
+export const useTransactions = () => useCrudHooks<Transaction>('transactions', transactionsApi as any);
+export const useClients = () => useCrudHooks<Client>('clients', clientsApi as any);
+export const useClientCompanies = () => useCrudHooks<ClientCompany>('clientCompanies', clientCompaniesApi as any);
 
 // Import CSV mutations
 export const useImportInvoicesCSV = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: invoicesApi.importCSV,
+    mutationFn: (data: any[]) => invoicesApi.importCSV(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invoices'] }),
   });
 };
@@ -59,7 +66,7 @@ export const useImportInvoicesCSV = () => {
 export const useImportTransactionsCSV = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: transactionsApi.importCSV,
+    mutationFn: (data: any[]) => transactionsApi.importCSV(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
   });
 };
