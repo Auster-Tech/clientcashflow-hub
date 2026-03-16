@@ -13,40 +13,8 @@ import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { UserRole, Category } from '@/types';
+import { useCategories } from '@/hooks/useApi';
 import { ColumnDef } from '@tanstack/react-table';
-
-const mockCategories: Category[] = [
-  {
-    id: '1',
-    name: 'Rent',
-    type: 'expense',
-    description: 'Monthly rental expenses'
-  },
-  {
-    id: '2',
-    name: 'Salaries',
-    type: 'expense',
-    description: 'Employee salaries'
-  },
-  {
-    id: '3',
-    name: 'Sales Revenue',
-    type: 'income',
-    description: 'Income from product sales'
-  },
-  {
-    id: '4',
-    name: 'Interest Income',
-    type: 'income',
-    description: 'Income from interest payments'
-  },
-  {
-    id: '5',
-    name: 'Marketing Expenses',
-    type: 'expense',
-    description: 'Expenses related to marketing activities'
-  }
-];
 
 interface CategoriesProps {
   userRole: UserRole;
@@ -55,39 +23,43 @@ interface CategoriesProps {
 export default function Categories({ userRole }: CategoriesProps) {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
-  const [categories, setCategories] = useState(mockCategories);
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCategories();
+  const { data: categories = [], isLoading } = useGetAll();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
+  const deleteMutation = useDelete();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleUpload = (data: any[]) => {
-    const newCategories = data.map((item, index) => ({
-      id: (categories.length + index + 1).toString(),
-      name: item.name || '',
-      type: item.type || 'expense',
-      description: item.description || '',
-    }));
-    setCategories([...categories, ...newCategories]);
+    data.forEach((item) => {
+      createMutation.mutate({
+        name: item.name || '',
+        type: item.type || 'expense',
+        description: item.description || '',
+      } as any);
+    });
     setUploadDialogOpen(false);
   };
 
   const handleSubmit = (data: Omit<Category, 'id'>) => {
     if (editingCategory) {
-      // Update existing category
-      setCategories(
-        categories.map((c) => (c.id === editingCategory.id ? { ...c, ...data } : c))
-      );
+      updateMutation.mutate({ id: editingCategory.id, data }, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          setEditingCategory(null);
+        },
+      });
     } else {
-      // Create new category
-      const newCategory: Category = {
-        id: (categories.length + 1).toString(),
-        ...data,
-      };
-      setCategories([...categories, newCategory]);
+      createMutation.mutate(data as any, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          setEditingCategory(null);
+        },
+      });
     }
-    setDialogOpen(false);
-    setEditingCategory(null);
   };
 
   const handleEdit = (category: Category) => {
@@ -96,7 +68,7 @@ export default function Categories({ userRole }: CategoriesProps) {
   };
 
   const handleDelete = (id: string) => {
-    setCategories(categories.filter((c) => c.id !== id));
+    deleteMutation.mutate(id);
   };
 
   const filteredCategories = categories.filter((category) =>
@@ -131,18 +103,10 @@ export default function Categories({ userRole }: CategoriesProps) {
       header: t('common.actions'),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleEdit(row.original)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => handleEdit(row.original)}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDelete(row.original.id)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => handleDelete(row.original.id)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -179,7 +143,6 @@ export default function Categories({ userRole }: CategoriesProps) {
             </div>
             <ClientSelector userRole={userRole} />
           </div>
-          
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <p className="text-lg text-muted-foreground">{t('categories.selectClient')}</p>

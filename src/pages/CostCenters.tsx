@@ -9,6 +9,7 @@ import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { UserRole, CostCenter } from '@/types';
+import { useCostCenters } from '@/hooks/useApi';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, Tag } from 'lucide-react';
 import {
@@ -29,44 +30,18 @@ interface CostCentersProps {
   userRole?: UserRole;
 }
 
-// Mock data for cost centers
-const mockCostCenters: CostCenter[] = [
-  {
-    id: '1',
-    name: 'Marketing Department',
-    description: 'All marketing and advertising activities'
-  },
-  {
-    id: '2',
-    name: 'Sales Team',
-    description: 'Sales operations and customer acquisition'
-  },
-  {
-    id: '3',
-    name: 'IT Department',
-    description: 'Information technology and infrastructure'
-  },
-  {
-    id: '4',
-    name: 'Human Resources',
-    description: 'HR operations and employee management'
-  },
-  {
-    id: '5',
-    name: 'Finance & Accounting',
-    description: 'Financial operations and accounting'
-  }
-];
-
 const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(mockCostCenters);
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCostCenters();
+  const { data: costCenters = [], isLoading } = useGetAll();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
+  const deleteMutation = useDelete();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | null>(null);
   const { toast } = useToast();
 
-  // Show message for accountants who haven't selected a client
   if (userRole === 'accountant' && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
@@ -97,39 +72,40 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   };
 
   const handleDeleteCostCenter = (costCenterId: string) => {
-    setCostCenters(prev => prev.filter(cc => cc.id !== costCenterId));
-    toast({
-      title: t('costCenters.title'),
-      description: t('common.delete'),
+    deleteMutation.mutate(costCenterId, {
+      onSuccess: () => {
+        toast({
+          title: t('costCenters.title'),
+          description: t('common.delete'),
+        });
+      },
     });
   };
 
   const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id'>) => {
     if (editingCostCenter) {
-      setCostCenters(prev => 
-        prev.map(cc => 
-          cc.id === editingCostCenter.id 
-            ? { ...editingCostCenter, ...costCenterData }
-            : cc
-        )
-      );
-      toast({
-        title: t('costCenters.update'),
-        description: t('common.update'),
+      updateMutation.mutate({ id: editingCostCenter.id, data: costCenterData }, {
+        onSuccess: () => {
+          toast({
+            title: t('costCenters.update'),
+            description: t('common.update'),
+          });
+          setIsFormOpen(false);
+          setEditingCostCenter(null);
+        },
       });
     } else {
-      const newCostCenter: CostCenter = {
-        id: Date.now().toString(),
-        ...costCenterData
-      };
-      setCostCenters(prev => [...prev, newCostCenter]);
-      toast({
-        title: t('costCenters.create'),
-        description: t('common.create'),
+      createMutation.mutate(costCenterData, {
+        onSuccess: () => {
+          toast({
+            title: t('costCenters.create'),
+            description: t('common.create'),
+          });
+          setIsFormOpen(false);
+          setEditingCostCenter(null);
+        },
       });
     }
-    setIsFormOpen(false);
-    setEditingCostCenter(null);
   };
 
   const columns: ColumnDef<CostCenter>[] = [
@@ -173,7 +149,6 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('costCenters.title')}</h1>
@@ -191,7 +166,6 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
           <StatsCard
             title={t('costCenters.total')}
@@ -213,7 +187,6 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
           />
         </div>
 
-        {/* Cost Centers Table */}
         <div className="space-y-4">
           <DataTable
             columns={columns}
@@ -223,7 +196,6 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
           />
         </div>
 
-        {/* Cost Center Form Dialog */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>

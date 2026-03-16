@@ -9,6 +9,7 @@ import { UploadCSV } from '@/components/ui/UploadCSV';
 import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
 import { UserRole, Invoice } from '@/types';
+import { useInvoices, useImportInvoicesCSV } from '@/hooks/useApi';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, FileText, DollarSign, Clock, Upload } from 'lucide-react';
 import {
@@ -31,63 +32,20 @@ interface InvoicesProps {
   userRole?: UserRole;
 }
 
-// Mock data for invoices
-const mockInvoices: Invoice[] = [
-  {
-    id: '1',
-    number: 'INV-2024-001',
-    date: '2024-01-15',
-    dueDate: '2024-02-15',
-    amount: 5000,
-    status: 'sent',
-    partnerId: '1',
-    description: 'Monthly consulting services',
-    notes: 'Net 30 payment terms'
-  },
-  {
-    id: '2',
-    number: 'INV-2024-002',
-    date: '2024-01-20',
-    dueDate: '2024-02-20',
-    amount: 2500,
-    status: 'paid',
-    partnerId: '2',
-    description: 'Software development project',
-    notes: 'Paid via bank transfer'
-  },
-  {
-    id: '3',
-    number: 'INV-2024-003',
-    date: '2024-02-01',
-    dueDate: '2024-03-01',
-    amount: 7500,
-    status: 'draft',
-    partnerId: '1',
-    description: 'Web application development'
-  },
-  {
-    id: '4',
-    number: 'INV-2024-004',
-    date: '2024-01-10',
-    dueDate: '2024-02-10',
-    amount: 3000,
-    status: 'overdue',
-    partnerId: '3',
-    description: 'Marketing campaign design',
-    notes: 'Follow up required'
-  }
-];
-
 const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices();
+  const { data: invoices = [], isLoading } = useGetAll();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
+  const deleteMutation = useDelete();
+  const importCSVMutation = useImportInvoicesCSV();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const { toast } = useToast();
 
-  // Show message for accountants who haven't selected a client
   if (userRole === 'accountant' && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
@@ -95,9 +53,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{t('invoices.title')}</h1>
-              <p className="text-muted-foreground">
-                {t('invoices.manageClientInvoices')}
-              </p>
+              <p className="text-muted-foreground">{t('invoices.manageClientInvoices')}</p>
             </div>
             <ClientSelector userRole={userRole} />
           </div>
@@ -109,106 +65,61 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     );
   }
 
-  const handleAddInvoice = () => {
-    setEditingInvoice(null);
-    setIsFormOpen(true);
-  };
-
-  const handleUploadCSV = () => {
-    setIsUploadOpen(true);
-  };
-
-  const handleEditInvoice = (invoice: Invoice) => {
-    setEditingInvoice(invoice);
-    setIsFormOpen(true);
-  };
+  const handleAddInvoice = () => { setEditingInvoice(null); setIsFormOpen(true); };
+  const handleUploadCSV = () => { setIsUploadOpen(true); };
+  const handleEditInvoice = (invoice: Invoice) => { setEditingInvoice(invoice); setIsFormOpen(true); };
 
   const handleDeleteInvoice = (invoiceId: string) => {
-    setInvoices(prev => prev.filter(invoice => invoice.id !== invoiceId));
-    toast({
-      title: t('toast.invoiceDeleted'),
-      description: t('toast.invoiceDeletedDesc'),
+    deleteMutation.mutate(invoiceId, {
+      onSuccess: () => toast({ title: t('toast.invoiceDeleted'), description: t('toast.invoiceDeletedDesc') }),
     });
   };
 
   const handleFormSubmit = (invoiceData: Omit<Invoice, 'id'>) => {
     if (editingInvoice) {
-      setInvoices(prev => 
-        prev.map(invoice => 
-          invoice.id === editingInvoice.id 
-            ? { ...editingInvoice, ...invoiceData }
-            : invoice
-        )
-      );
-      toast({
-        title: t('toast.invoiceUpdated'),
-        description: t('toast.invoiceUpdatedDesc'),
+      updateMutation.mutate({ id: editingInvoice.id, data: invoiceData }, {
+        onSuccess: () => {
+          toast({ title: t('toast.invoiceUpdated'), description: t('toast.invoiceUpdatedDesc') });
+          setIsFormOpen(false);
+          setEditingInvoice(null);
+        },
       });
     } else {
-      const newInvoice: Invoice = {
-        id: Date.now().toString(),
-        ...invoiceData
-      };
-      setInvoices(prev => [...prev, newInvoice]);
-      toast({
-        title: t('toast.invoiceCreated'),
-        description: t('toast.invoiceCreatedDesc'),
+      createMutation.mutate(invoiceData as any, {
+        onSuccess: () => {
+          toast({ title: t('toast.invoiceCreated'), description: t('toast.invoiceCreatedDesc') });
+          setIsFormOpen(false);
+          setEditingInvoice(null);
+        },
       });
     }
-    setIsFormOpen(false);
-    setEditingInvoice(null);
   };
 
   const handleCSVUpload = (csvData: any[]) => {
-    const newInvoices: Invoice[] = csvData.map((row, index) => ({
-      id: `csv-${Date.now()}-${index}`,
-      number: row.number || row.Number || `INV-${Date.now()}-${index}`,
-      date: row.date || row.Date || new Date().toISOString().split('T')[0],
-      dueDate: row.dueDate || row.DueDate || new Date().toISOString().split('T')[0],
-      amount: parseFloat(row.amount || row.Amount || '0'),
-      status: (row.status || row.Status || 'draft').toLowerCase() as Invoice['status'],
-      partnerId: row.partnerId || row.PartnerId || '1',
-      description: row.description || row.Description || '',
-      notes: row.notes || row.Notes || ''
-    })).filter(invoice => invoice.number);
-
-    setInvoices(prev => [...prev, ...newInvoices]);
-    setIsUploadOpen(false);
-    
-    toast({
-      title: t('toast.invoicesImported'),
-      description: t('toast.invoicesImportedDesc').replace('{count}', newInvoices.length.toString()),
+    importCSVMutation.mutate(csvData, {
+      onSuccess: () => {
+        setIsUploadOpen(false);
+        toast({ title: t('toast.invoicesImported'), description: t('toast.invoicesImportedDesc').replace('{count}', csvData.length.toString()) });
+      },
     });
   };
 
   const columns: ColumnDef<Invoice>[] = [
-    {
-      accessorKey: 'number',
-      header: t('invoices.number'),
-    },
+    { accessorKey: 'number', header: t('invoices.number') },
     {
       accessorKey: 'date',
       header: t('invoices.date'),
-      cell: ({ row }) => {
-        const date = row.getValue('date') as string;
-        return format(new Date(date), 'MMM dd, yyyy');
-      },
+      cell: ({ row }) => format(new Date(row.getValue('date') as string), 'MMM dd, yyyy'),
     },
     {
       accessorKey: 'dueDate',
       header: t('invoices.dueDate'),
-      cell: ({ row }) => {
-        const date = row.getValue('dueDate') as string;
-        return format(new Date(date), 'MMM dd, yyyy');
-      },
+      cell: ({ row }) => format(new Date(row.getValue('dueDate') as string), 'MMM dd, yyyy'),
     },
     {
       accessorKey: 'amount',
       header: t('invoices.amount'),
-      cell: ({ row }) => {
-        const amount = row.getValue('amount') as number;
-        return `$${amount.toLocaleString()}`;
-      },
+      cell: ({ row }) => `$${(row.getValue('amount') as number).toLocaleString()}`,
     },
     {
       accessorKey: 'status',
@@ -230,10 +141,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         );
       },
     },
-    {
-      accessorKey: 'description',
-      header: t('common.description'),
-    },
+    { accessorKey: 'description', header: t('common.description') },
     {
       id: 'actions',
       header: t('common.actions'),
@@ -242,20 +150,11 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              <Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
-                {t('common.edit')}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => handleDeleteInvoice(invoice.id)}
-                className="text-red-600"
-              >
-                {t('common.delete')}
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>{t('common.edit')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDeleteInvoice(invoice.id)} className="text-red-600">{t('common.delete')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -270,7 +169,6 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('invoices.title')}</h1>
@@ -283,89 +181,43 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
             <ClientSelector userRole={userRole} />
             <div className="flex gap-2">
               <Button onClick={handleUploadCSV} variant="outline" className="gap-2">
-                <Upload className="h-4 w-4" />
-                {t('common.upload')}
+                <Upload className="h-4 w-4" />{t('common.upload')}
               </Button>
               <Button onClick={handleAddInvoice} className="gap-2">
-                <Plus className="h-4 w-4" />
-                {t('invoices.add')}
+                <Plus className="h-4 w-4" />{t('invoices.add')}
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <StatsCard
-            title={t('invoices.total')}
-            value={invoices.length}
-            icon={FileText}
-            description={t('invoices.allInvoices')}
-          />
-          <StatsCard
-            title={t('invoices.amount')}
-            value={`$${totalAmount.toLocaleString()}`}
-            icon={DollarSign}
-            description={t('invoices.totalInvoiceValue')}
-          />
-          <StatsCard
-            title={t('invoices.paid')}
-            value={paidInvoices.length}
-            icon={FileText}
-            description={t('invoices.successfullyPaid')}
-            trend={{
-              value: `${Math.round((paidInvoices.length / invoices.length) * 100)}%`,
-              label: t('invoices.ofTotal')
-            }}
-          />
-          <StatsCard
-            title={t('invoices.overdue')}
-            value={overdueInvoices.length}
-            icon={Clock}
-            description={t('invoices.needsAttention')}
-            trend={{
-              value: `${Math.round((overdueInvoices.length / invoices.length) * 100)}%`,
-              label: t('invoices.ofTotal')
-            }}
-          />
+          <StatsCard title={t('invoices.total')} value={invoices.length} icon={FileText} description={t('invoices.allInvoices')} />
+          <StatsCard title={t('invoices.amount')} value={`$${totalAmount.toLocaleString()}`} icon={DollarSign} description={t('invoices.totalInvoiceValue')} />
+          <StatsCard title={t('invoices.paid')} value={paidInvoices.length} icon={FileText} description={t('invoices.successfullyPaid')}
+            trend={{ value: `${invoices.length ? Math.round((paidInvoices.length / invoices.length) * 100) : 0}%`, label: t('invoices.ofTotal') }} />
+          <StatsCard title={t('invoices.overdue')} value={overdueInvoices.length} icon={Clock} description={t('invoices.needsAttention')}
+            trend={{ value: `${invoices.length ? Math.round((overdueInvoices.length / invoices.length) * 100) : 0}%`, label: t('invoices.ofTotal') }} />
         </div>
 
-        {/* Invoices Table */}
         <div className="space-y-4">
-          <DataTable
-            columns={columns}
-            data={invoices}
-            searchColumn="number"
-            searchPlaceholder={t('invoices.searchInvoices')}
-          />
+          <DataTable columns={columns} data={invoices} searchColumn="number" searchPlaceholder={t('invoices.searchInvoices')} />
         </div>
 
-        {/* Invoice Form Dialog */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle>
-                {editingInvoice ? t('invoices.editInvoice') : t('invoices.addNewInvoice')}
-              </DialogTitle>
+              <DialogTitle>{editingInvoice ? t('invoices.editInvoice') : t('invoices.addNewInvoice')}</DialogTitle>
             </DialogHeader>
-            <InvoiceForm
-              invoice={editingInvoice}
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsFormOpen(false)}
-            />
+            <InvoiceForm invoice={editingInvoice} onSubmit={handleFormSubmit} onCancel={() => setIsFormOpen(false)} />
           </DialogContent>
         </Dialog>
 
-        {/* CSV Upload Dialog */}
         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{t('invoices.uploadInvoicesCSV')}</DialogTitle>
             </DialogHeader>
-            <UploadCSV
-              onUpload={handleCSVUpload}
-              onCancel={() => setIsUploadOpen(false)}
-            />
+            <UploadCSV onUpload={handleCSVUpload} onCancel={() => setIsUploadOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>
