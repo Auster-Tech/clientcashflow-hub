@@ -4,22 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserRole } from "@/types";
-import { 
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle 
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatsCard } from "@/components/ui/StatsCard";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, CreditCard, Building, Wallet, DollarSign, Landmark, PiggyBank,
-  Banknote, CircleDollarSign, Search 
-} from 'lucide-react';
+import { Plus, CreditCard, Wallet, DollarSign, PiggyBank, Banknote, CircleDollarSign, Search } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { useAccounts } from "@/hooks/useApi";
+import { useClient } from "@/contexts/ClientContext";
 
 interface AccountsProps {
   userRole: UserRole;
@@ -27,39 +21,38 @@ interface AccountsProps {
 
 const Accounts = ({ userRole }: AccountsProps) => {
   const { t } = useTranslation();
+  const { selectedClient } = useClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
   const { toast } = useToast();
-  const { useGetAll, useCreate } = useAccounts();
+  
+  const clientId = selectedClient?.id || 0;
+  const { useGetAll, useCreate } = useAccounts(clientId);
   const { data: accounts = [], isLoading } = useGetAll();
   const createMutation = useCreate();
 
-  const totalAssets = accounts
-    .filter((account: any) => (account.balance || 0) > 0)
-    .reduce((sum: number, account: any) => sum + (account.balance || 0), 0);
-  
-  const totalLiabilities = Math.abs(accounts
-    .filter((account: any) => (account.balance || 0) < 0)
-    .reduce((sum: number, account: any) => sum + (account.balance || 0), 0));
-
-  const netWorth = totalAssets - totalLiabilities;
+  if (userRole === 'accountant' && !selectedClient) {
+    return (
+      <DashboardLayout userRole={userRole}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">{t('accounts.title')}</h1>
+              <p className="text-muted-foreground">{t('accounts.subtitle')}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <p className="text-lg text-muted-foreground">Please select a client to view accounts.</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const filteredAccounts = accounts.filter((account: any) =>
     (account.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (account.institution || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (account.type || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (account.institution || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const getAccountIcon = (type: string) => {
-    switch (type) {
-      case "checking": return <CreditCard size={20} />;
-      case "savings": return <PiggyBank size={20} />;
-      case "credit": return <CreditCard size={20} />;
-      case "investment": return <CircleDollarSign size={20} />;
-      case "cash": return <Banknote size={20} />;
-      default: return <Wallet size={20} />;
-    }
-  };
 
   return (
     <DashboardLayout userRole={userRole}>
@@ -74,52 +67,21 @@ const Accounts = ({ userRole }: AccountsProps) => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatsCard 
-            title={t('accounts.totalAssets')}
-            value={new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalAssets)}
-            icon={DollarSign}
-            description={t('accounts.sumOfAllPositiveBalances')}
-            trend={{ value: "+5.2%", label: t('accounts.fromLastMonth'), positive: true }}
-          />
-          <StatsCard 
-            title={t('accounts.totalLiabilities')}
-            value={new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalLiabilities)}
-            icon={DollarSign}
-            description={t('accounts.sumOfAllNegativeBalances')}
-            trend={{ value: "-2.1%", label: t('accounts.fromLastMonth'), positive: true }}
-          />
-          <StatsCard 
-            title={t('accounts.netWorth')}
-            value={new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(netWorth)}
-            icon={Wallet}
-            description={t('accounts.assetsMinusLiabilities')}
-            trend={{ value: "+8.4%", label: t('accounts.fromLastMonth'), positive: true }}
-          />
-        </div>
-
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder={t('accounts.searchAccounts')}
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <Input type="search" placeholder={t('accounts.searchAccounts')} className="pl-8"
+              value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredAccounts.map((account: any) => (
-            <Card key={account.id} className="overflow-hidden">
+            <Card key={account.id || account.name} className="overflow-hidden">
               <CardHeader className="pb-2 flex flex-row items-start justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <div className={`p-1.5 rounded-full ${(account.balance || 0) >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                      {getAccountIcon(account.type)}
-                    </div>
+                    <div className="p-1.5 rounded-full bg-green-100"><Wallet size={20} /></div>
                     {account.name}
                   </CardTitle>
                   <CardDescription>{account.institution}</CardDescription>
@@ -129,14 +91,6 @@ const Accounts = ({ userRole }: AccountsProps) => {
                 </Badge>
               </CardHeader>
               <CardContent>
-                <div className="mt-2">
-                  <div className="text-2xl font-bold">
-                    {new Intl.NumberFormat("en-US", { style: "currency", currency: account.currency || "USD" }).format(account.balance || 0)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t(`accounts.${account.type}`)} {t('accounts.account')}
-                  </p>
-                </div>
                 <div className="mt-4 flex justify-end gap-2">
                   <Button size="sm" variant="outline">{t('accounts.viewTransactions')}</Button>
                   <Button size="sm">{t('accounts.manage')}</Button>
@@ -149,46 +103,15 @@ const Accounts = ({ userRole }: AccountsProps) => {
 
       <Dialog open={isAddAccountOpen} onOpenChange={setIsAddAccountOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{t('accounts.addNewAccount')}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{t('accounts.addNewAccount')}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="account-name" className="text-right">{t('accounts.accountName')}</Label>
               <Input id="account-name" placeholder="e.g. Business Checking" className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="account-type" className="text-right">{t('accounts.accountType')}</Label>
-              <Select>
-                <SelectTrigger className="col-span-3"><SelectValue placeholder={t('accounts.selectAccountType')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="checking">{t('accounts.checking')}</SelectItem>
-                  <SelectItem value="savings">{t('accounts.savings')}</SelectItem>
-                  <SelectItem value="credit">{t('accounts.credit')}</SelectItem>
-                  <SelectItem value="investment">{t('accounts.investment')}</SelectItem>
-                  <SelectItem value="cash">{t('accounts.cash')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="institution" className="text-right">{t('accounts.institution')}</Label>
               <Input id="institution" placeholder={t('accounts.enterInstitution')} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="initial-balance" className="text-right">{t('accounts.balance')}</Label>
-              <Input id="initial-balance" placeholder="0.00" type="number" step="0.01" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="currency" className="text-right">{t('accounts.currency')}</Label>
-              <Select defaultValue="USD">
-                <SelectTrigger className="col-span-3"><SelectValue placeholder={t('accounts.selectCurrency')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">{t('accounts.usd')}</SelectItem>
-                  <SelectItem value="EUR">{t('accounts.eur')}</SelectItem>
-                  <SelectItem value="GBP">{t('accounts.gbp')}</SelectItem>
-                  <SelectItem value="CAD">{t('accounts.cad')}</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <DialogFooter>
@@ -196,9 +119,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
             <Button onClick={() => {
               setIsAddAccountOpen(false);
               toast({ title: t('toast.accountAdded'), description: t('toast.accountAddedDesc') });
-            }}>
-              {t('accounts.addAccount')}
-            </Button>
+            }}>{t('accounts.addAccount')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

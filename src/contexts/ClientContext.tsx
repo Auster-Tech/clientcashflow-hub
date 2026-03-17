@@ -1,21 +1,27 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Client } from '@/types';
+import { ClientResponse } from '@/types';
 import { useClients } from '@/hooks/useApi';
 
 interface ClientContextType {
-  selectedClient: Client | null;
-  setSelectedClient: (client: Client | null) => void;
-  clients: Client[];
+  selectedClient: (ClientResponse & { name: string }) | null;
+  setSelectedClient: (client: any) => void;
+  clients: (ClientResponse & { name: string })[];
   isLoading: boolean;
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
 export function ClientProvider({ children }: { children: ReactNode }) {
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
   const { useGetAll } = useClients();
-  const { data: clients = [], isLoading } = useGetAll();
+  const { data: rawClients = [], isLoading } = useGetAll();
+
+  // Map backend response to include a `name` field for display
+  const clients = rawClients.map((c: any) => ({
+    ...c,
+    name: c.company_name || c.name || '',
+  }));
 
   return (
     <ClientContext.Provider value={{

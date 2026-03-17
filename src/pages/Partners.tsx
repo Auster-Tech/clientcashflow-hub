@@ -9,22 +9,14 @@ import { UploadCSV } from '@/components/ui/UploadCSV';
 import { ClientSelector } from '@/components/ui/ClientSelector';
 import { useClient } from '@/contexts/ClientContext';
 import { useTranslation } from '@/contexts/TranslationContext';
-import { UserRole, Partner } from '@/types';
+import { UserRole, Partner, Status } from '@/types';
 import { usePartners } from '@/hooks/useApi';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Plus, Tag, TrendingUp, TrendingDown, Upload } from 'lucide-react';
+import { MoreHorizontal, Plus, Tag, Upload } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface PartnersProps {
@@ -63,44 +55,20 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
     );
   }
 
-  const handleAddPartner = () => {
-    setEditingPartner(null);
-    setIsFormOpen(true);
-  };
-
-  const handleUploadCSV = () => {
-    setIsUploadOpen(true);
-  };
-
-  const handleEditPartner = (partner: Partner) => {
-    setEditingPartner(partner);
-    setIsFormOpen(true);
-  };
-
-  const handleDeletePartner = (partnerId: string) => {
+  const handleDeletePartner = (partnerId: number) => {
     deleteMutation.mutate(partnerId, {
-      onSuccess: () => {
-        toast({ title: t('partners.title'), description: t('common.delete') });
-      },
+      onSuccess: () => { toast({ title: t('partners.title'), description: t('common.delete') }); },
     });
   };
 
   const handleFormSubmit = (partnerData: Omit<Partner, 'id'>) => {
     if (editingPartner) {
       updateMutation.mutate({ id: editingPartner.id, data: partnerData }, {
-        onSuccess: () => {
-          toast({ title: t('partners.update'), description: t('common.update') });
-          setIsFormOpen(false);
-          setEditingPartner(null);
-        },
+        onSuccess: () => { toast({ title: t('partners.update'), description: t('common.update') }); setIsFormOpen(false); setEditingPartner(null); },
       });
     } else {
-      createMutation.mutate(partnerData as any, {
-        onSuccess: () => {
-          toast({ title: t('partners.create'), description: t('common.create') });
-          setIsFormOpen(false);
-          setEditingPartner(null);
-        },
+      createMutation.mutate(partnerData, {
+        onSuccess: () => { toast({ title: t('partners.create'), description: t('common.create') }); setIsFormOpen(false); setEditingPartner(null); },
       });
     }
   };
@@ -109,11 +77,9 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
     csvData.forEach((row) => {
       createMutation.mutate({
         name: row.name || row.Name || '',
-        type: (row.type || row.Type || 'customer').toLowerCase(),
-        email: row.email || row.Email || '',
-        phone: row.phone || row.Phone || '',
-        address: row.address || row.Address || ''
-      } as any);
+        contact_info: row.contact_info || row.email || '',
+        status: Status.ACTIVE,
+      });
     });
     setIsUploadOpen(false);
     toast({ title: t('partners.title'), description: t('common.upload') });
@@ -121,56 +87,20 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
 
   const columns: ColumnDef<Partner>[] = [
     { accessorKey: 'name', header: t('partners.name') },
+    { accessorKey: 'contact_info', header: 'Contact Info' },
     {
-      accessorKey: 'type',
-      header: t('common.type'),
-      cell: ({ row }) => {
-        const type = row.getValue('type') as string;
-        const typeColors = {
-          customer: 'bg-blue-100 text-blue-800',
-          supplier: 'bg-green-100 text-green-800',
-          vendor: 'bg-purple-100 text-purple-800'
-        };
-        return (
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            typeColors[type as keyof typeof typeColors] || 'bg-gray-100 text-gray-800'
-          }`}>
-            {type === 'customer' ? t('partners.customer') : type === 'supplier' ? t('partners.supplier') : type}
-          </span>
-        );
-      },
-    },
-    { accessorKey: 'email', header: t('partners.email') },
-    { accessorKey: 'phone', header: t('partners.phone') },
-    {
-      id: 'actions',
-      header: t('common.actions'),
-      cell: ({ row }) => {
-        const partner = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEditPartner(partner)}>
-                {t('common.edit')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDeletePartner(partner.id)} className="text-red-600">
-                {t('common.delete')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
+      id: 'actions', header: t('common.actions'),
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => { setEditingPartner(row.original); setIsFormOpen(true); }}>{t('common.edit')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDeletePartner(row.original.id)} className="text-red-600">{t('common.delete')}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
     },
   ];
-
-  const customerPartners = partners.filter(partner => partner.type === 'customer');
-  const supplierPartners = partners.filter(partner => partner.type === 'supplier');
-  const vendorPartners = partners.filter(partner => partner.type === 'vendor');
 
   return (
     <DashboardLayout userRole={userRole}>
@@ -178,51 +108,29 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('partners.title')}</h1>
-            <p className="text-muted-foreground">
-              {t('partners.subtitle')}
-              {selectedClient && ` ${t('common.client')}: ${selectedClient.name}`}
-            </p>
+            <p className="text-muted-foreground">{t('partners.subtitle')}{selectedClient && ` ${t('common.client')}: ${selectedClient.name}`}</p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
             <div className="flex gap-2">
-              <Button onClick={handleUploadCSV} variant="outline" className="gap-2">
-                <Upload className="h-4 w-4" />
-                {t('common.upload')}
-              </Button>
-              <Button onClick={handleAddPartner} className="gap-2">
-                <Plus className="h-4 w-4" />
-                {t('partners.add')}
-              </Button>
+              <Button onClick={() => setIsUploadOpen(true)} variant="outline" className="gap-2"><Upload className="h-4 w-4" />{t('common.upload')}</Button>
+              <Button onClick={() => { setEditingPartner(null); setIsFormOpen(true); }} className="gap-2"><Plus className="h-4 w-4" />{t('partners.add')}</Button>
             </div>
           </div>
         </div>
-
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <StatsCard title={t('partners.total')} value={partners.length} icon={Tag} description={t('partners.total')} />
-          <StatsCard title={t('partners.customers')} value={customerPartners.length} icon={TrendingUp} description={t('partners.customers')} />
-          <StatsCard title={t('partners.suppliers')} value={supplierPartners.length} icon={TrendingDown} description={t('partners.suppliers')} />
-          <StatsCard title="Vendors" value={vendorPartners.length} icon={Tag} description="Vendor partners" />
         </div>
-
-        <div className="space-y-4">
-          <DataTable columns={columns} data={partners} searchColumn="name" searchPlaceholder={t('common.search')} />
-        </div>
-
+        <DataTable columns={columns} data={partners} searchColumn="name" searchPlaceholder={t('common.search')} />
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingPartner ? t('partners.edit') : t('partners.add')}</DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle>{editingPartner ? t('partners.edit') : t('partners.add')}</DialogTitle></DialogHeader>
             <PartnerForm partner={editingPartner} onSubmit={handleFormSubmit} onCancel={() => setIsFormOpen(false)} />
           </DialogContent>
         </Dialog>
-
         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{t('common.upload')}</DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle>{t('common.upload')}</DialogTitle></DialogHeader>
             <UploadCSV onUpload={handleCSVUpload} onCancel={() => setIsUploadOpen(false)} />
           </DialogContent>
         </Dialog>
