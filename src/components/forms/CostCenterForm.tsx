@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { CostCenter } from '@/types';
+import { CostCenter, Status } from '@/types';
 
 const costCenterFormSchema = z.object({
   name: z.string().min(1, 'Cost center name is required'),
@@ -42,47 +42,30 @@ export function CostCenterForm({ costCenter, onSubmit, onCancel }: CostCenterFor
     onSubmit({
       name: data.name,
       description: data.description || '',
+      status: costCenter?.status ?? Status.ACTIVE,
     });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cost Center Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter cost center name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Enter description" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        <FormField control={form.control} name="name" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Cost Center Name</FormLabel>
+            <FormControl><Input placeholder="Enter cost center name" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="description" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Description (Optional)</FormLabel>
+            <FormControl><Textarea placeholder="Enter description" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
         <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit">
-            {costCenter ? 'Update Cost Center' : 'Create Cost Center'}
-          </Button>
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit">{costCenter ? 'Update Cost Center' : 'Create Cost Center'}</Button>
         </div>
       </form>
     </Form>

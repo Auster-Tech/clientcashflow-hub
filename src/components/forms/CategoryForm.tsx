@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Category } from '@/types';
+import { Category, Status } from '@/types';
 import { useTranslation } from '@/contexts/TranslationContext';
 
 const categoryFormSchema = z.object({
@@ -57,69 +57,43 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
       name: data.name,
       type: data.type,
       description: data.description || '',
+      status: category?.status ?? Status.ACTIVE,
     });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('categories.name')}</FormLabel>
-              <FormControl>
-                <Input placeholder={t('form.enterName')} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('common.type')}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('form.selectType')} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="income">{t('categories.income')}</SelectItem>
-                  <SelectItem value="expense">{t('categories.expense')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('common.description')} ({t('form.optional')})</FormLabel>
-              <FormControl>
-                <Textarea placeholder={t('form.enterDescription')} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        <FormField control={form.control} name="name" render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('categories.name')}</FormLabel>
+            <FormControl><Input placeholder={t('form.enterName')} {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="type" render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('common.type')}</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl><SelectTrigger><SelectValue placeholder={t('form.selectType')} /></SelectTrigger></FormControl>
+              <SelectContent>
+                <SelectItem value="income">{t('categories.income')}</SelectItem>
+                <SelectItem value="expense">{t('categories.expense')}</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="description" render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('common.description')} ({t('form.optional')})</FormLabel>
+            <FormControl><Textarea placeholder={t('form.enterDescription')} {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
         <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            {t('common.cancel')}
-          </Button>
-          <Button type="submit">
-            {category ? t('categories.update') : t('categories.create')}
-          </Button>
+          <Button type="button" variant="outline" onClick={onCancel}>{t('common.cancel')}</Button>
+          <Button type="submit">{category ? t('categories.update') : t('categories.create')}</Button>
         </div>
       </form>
     </Form>

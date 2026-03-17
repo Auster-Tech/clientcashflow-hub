@@ -13,7 +13,6 @@ export function ClientSelector({ userRole }: ClientSelectorProps) {
   const { selectedClient, setSelectedClient, clients } = useClient();
   const { t } = useTranslation();
 
-  // Only show client selector for accountants
   if (userRole !== 'accountant') {
     return null;
   }
@@ -22,9 +21,9 @@ export function ClientSelector({ userRole }: ClientSelectorProps) {
     <div className="flex items-center gap-2">
       <span className="text-sm font-medium text-muted-foreground">{t('common.client')}:</span>
       <Select
-        value={selectedClient?.id || ''}
+        value={selectedClient?.id?.toString() || ''}
         onValueChange={(value) => {
-          const client = clients.find(c => c.id === value);
+          const client = clients.find(c => c.id.toString() === value);
           setSelectedClient(client || null);
         }}
       >
@@ -33,7 +32,7 @@ export function ClientSelector({ userRole }: ClientSelectorProps) {
         </SelectTrigger>
         <SelectContent>
           {clients.map((client) => (
-            <SelectItem key={client.id} value={client.id}>
+            <SelectItem key={client.id} value={client.id.toString()}>
               {client.name}
             </SelectItem>
           ))}

@@ -13,17 +13,9 @@ import { useCostCenters } from '@/hooks/useApi';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Plus, Tag } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface CostCentersProps {
@@ -61,88 +53,38 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
     );
   }
 
-  const handleAddCostCenter = () => {
-    setEditingCostCenter(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEditCostCenter = (costCenter: CostCenter) => {
-    setEditingCostCenter(costCenter);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteCostCenter = (costCenterId: string) => {
+  const handleDeleteCostCenter = (costCenterId: number) => {
     deleteMutation.mutate(costCenterId, {
-      onSuccess: () => {
-        toast({
-          title: t('costCenters.title'),
-          description: t('common.delete'),
-        });
-      },
+      onSuccess: () => { toast({ title: t('costCenters.title'), description: t('common.delete') }); },
     });
   };
 
   const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id'>) => {
     if (editingCostCenter) {
       updateMutation.mutate({ id: editingCostCenter.id, data: costCenterData }, {
-        onSuccess: () => {
-          toast({
-            title: t('costCenters.update'),
-            description: t('common.update'),
-          });
-          setIsFormOpen(false);
-          setEditingCostCenter(null);
-        },
+        onSuccess: () => { toast({ title: t('costCenters.update'), description: t('common.update') }); setIsFormOpen(false); setEditingCostCenter(null); },
       });
     } else {
       createMutation.mutate(costCenterData, {
-        onSuccess: () => {
-          toast({
-            title: t('costCenters.create'),
-            description: t('common.create'),
-          });
-          setIsFormOpen(false);
-          setEditingCostCenter(null);
-        },
+        onSuccess: () => { toast({ title: t('costCenters.create'), description: t('common.create') }); setIsFormOpen(false); setEditingCostCenter(null); },
       });
     }
   };
 
   const columns: ColumnDef<CostCenter>[] = [
+    { accessorKey: 'name', header: t('common.name') },
+    { accessorKey: 'description', header: t('common.description') },
     {
-      accessorKey: 'name',
-      header: t('common.name'),
-    },
-    {
-      accessorKey: 'description',
-      header: t('common.description'),
-    },
-    {
-      id: 'actions',
-      header: t('common.actions'),
-      cell: ({ row }) => {
-        const costCenter = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEditCostCenter(costCenter)}>
-                {t('common.edit')}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => handleDeleteCostCenter(costCenter.id)}
-                className="text-red-600"
-              >
-                {t('common.delete')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
+      id: 'actions', header: t('common.actions'),
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => { setEditingCostCenter(row.original); setIsFormOpen(true); }}>{t('common.edit')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDeleteCostCenter(row.original.id)} className="text-red-600">{t('common.delete')}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
     },
   ];
 
@@ -152,62 +94,21 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('costCenters.title')}</h1>
-            <p className="text-muted-foreground">
-              {t('costCenters.subtitle')}
-              {selectedClient && ` ${t('common.client')}: ${selectedClient.name}`}
-            </p>
+            <p className="text-muted-foreground">{t('costCenters.subtitle')}{selectedClient && ` ${t('common.client')}: ${selectedClient.name}`}</p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
-            <Button onClick={handleAddCostCenter} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t('costCenters.add')}
-            </Button>
+            <Button onClick={() => { setEditingCostCenter(null); setIsFormOpen(true); }} className="gap-2"><Plus className="h-4 w-4" />{t('costCenters.add')}</Button>
           </div>
         </div>
-
         <div className="grid gap-4 md:grid-cols-3">
-          <StatsCard
-            title={t('costCenters.total')}
-            value={costCenters.length}
-            icon={Tag}
-            description={t('costCenters.total')}
-          />
-          <StatsCard
-            title={t('costCenters.active')}
-            value={costCenters.length}
-            icon={Tag}
-            description={t('costCenters.active')}
-          />
-          <StatsCard
-            title={t('costCenters.inactive')}
-            value="0"
-            icon={Tag}
-            description={t('costCenters.inactive')}
-          />
+          <StatsCard title={t('costCenters.total')} value={costCenters.length} icon={Tag} description={t('costCenters.total')} />
         </div>
-
-        <div className="space-y-4">
-          <DataTable
-            columns={columns}
-            data={costCenters}
-            searchColumn="name"
-            searchPlaceholder={t('common.search')}
-          />
-        </div>
-
+        <DataTable columns={columns} data={costCenters} searchColumn="name" searchPlaceholder={t('common.search')} />
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {editingCostCenter ? t('costCenters.edit') : t('costCenters.add')}
-              </DialogTitle>
-            </DialogHeader>
-            <CostCenterForm
-              costCenter={editingCostCenter}
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsFormOpen(false)}
-            />
+            <DialogHeader><DialogTitle>{editingCostCenter ? t('costCenters.edit') : t('costCenters.add')}</DialogTitle></DialogHeader>
+            <CostCenterForm costCenter={editingCostCenter} onSubmit={handleFormSubmit} onCancel={() => setIsFormOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>
