@@ -168,21 +168,20 @@ const Clients = () => {
           <DialogHeader><DialogTitle>{t('common.add')} New Client</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label htmlFor="tax-id">Tax ID</Label><Input id="tax-id" placeholder="Enter tax ID" /></div>
-              <div className="space-y-2"><Label htmlFor="company-name">Company Name</Label><Input id="company-name" placeholder="Enter company name" /></div>
-              <div className="space-y-2"><Label htmlFor="industry">Industry</Label><Input id="industry" placeholder="Enter industry" /></div>
-              <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="company@example.com" /></div>
-              <div className="space-y-2"><Label htmlFor="phone">Phone</Label><Input id="phone" placeholder="(555) 123-4567" /></div>
-              <div className="space-y-2"><Label htmlFor="fiscal-year">Fiscal Year End</Label><Input id="fiscal-year" placeholder="e.g. December" /></div>
-              <div className="space-y-2 col-span-2"><Label htmlFor="address">Address</Label><Input id="address" placeholder="Enter company address" /></div>
+              <div className="space-y-2"><Label htmlFor="tax-id">Tax ID</Label><Input id="tax-id" placeholder="Enter tax ID" value={newClient.taxId} onChange={(e) => setNewClient(p => ({ ...p, taxId: e.target.value }))} /></div>
+              <div className="space-y-2"><Label htmlFor="company-name">Company Name</Label><Input id="company-name" placeholder="Enter company name" value={newClient.companyName} onChange={(e) => setNewClient(p => ({ ...p, companyName: e.target.value }))} /></div>
+              <div className="space-y-2"><Label htmlFor="industry">Industry</Label><Input id="industry" placeholder="Enter industry" value={newClient.industry} onChange={(e) => setNewClient(p => ({ ...p, industry: e.target.value }))} /></div>
+              <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="company@example.com" value={newClient.email} onChange={(e) => setNewClient(p => ({ ...p, email: e.target.value }))} /></div>
+              <div className="space-y-2"><Label htmlFor="phone">Phone</Label><Input id="phone" placeholder="(555) 123-4567" value={newClient.phone} onChange={(e) => setNewClient(p => ({ ...p, phone: e.target.value }))} /></div>
+              <div className="space-y-2"><Label htmlFor="fiscal-year">Fiscal Year End</Label><Input id="fiscal-year" placeholder="e.g. December" value={newClient.fiscalYearEnd} onChange={(e) => setNewClient(p => ({ ...p, fiscalYearEnd: e.target.value }))} /></div>
+              <div className="space-y-2 col-span-2"><Label htmlFor="address">Address</Label><Input id="address" placeholder="Enter company address" value={newClient.address} onChange={(e) => setNewClient(p => ({ ...p, address: e.target.value }))} /></div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddClientOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={() => {
-              setIsAddClientOpen(false);
-              toast({ title: t('common.add'), description: "Client added successfully." });
-            }}>{t('common.save')}</Button>
+            <Button onClick={handleCreateClient} disabled={createMutation.isPending}>
+              {createMutation.isPending ? 'Saving...' : t('common.save')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
