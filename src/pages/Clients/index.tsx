@@ -25,11 +25,36 @@ const Clients = () => {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ClientResponse | null>(null);
+  const [newClient, setNewClient] = useState({
+    taxId: '', companyName: '', industry: '', email: '', phone: '', address: '', fiscalYearEnd: '',
+  });
   const { toast } = useToast();
   const { useGetAll, useCreate, useDelete } = useClients();
   const { data: clientList = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const deleteMutation = useDelete();
+
+  const handleCreateClient = () => {
+    createMutation.mutate({
+      taxId: newClient.taxId,
+      companyName: newClient.companyName,
+      industry: newClient.industry,
+      email: newClient.email,
+      phone: newClient.phone,
+      address: newClient.address,
+      fiscalYearEnd: newClient.fiscalYearEnd,
+      status: Status.ACTIVE,
+    }, {
+      onSuccess: () => {
+        toast({ title: t('common.add'), description: "Client added successfully." });
+        setIsAddClientOpen(false);
+        setNewClient({ taxId: '', companyName: '', industry: '', email: '', phone: '', address: '', fiscalYearEnd: '' });
+      },
+      onError: (error) => {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      },
+    });
+  };
 
   const handleDeleteClient = () => {
     if (clientToDelete) {
