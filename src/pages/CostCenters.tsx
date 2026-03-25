@@ -25,8 +25,8 @@ interface CostCentersProps {
 const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
-  const { useGetAll, useCreate, useUpdate, useDelete } = useCostCenters();
-  const { data: costCenters = [], isLoading } = useGetAll();
+  const clientId = selectedClient?.id ?? 0;
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCostCenters(clientId);
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();

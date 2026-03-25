@@ -27,8 +27,8 @@ interface InvoicesProps {
 const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
-  const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices();
-  const { data: invoices = [], isLoading } = useGetAll();
+  const clientId = selectedClient?.id ?? 0;
+  const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices(clientId);
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();

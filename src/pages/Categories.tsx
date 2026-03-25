@@ -23,8 +23,8 @@ interface CategoriesProps {
 export default function Categories({ userRole }: CategoriesProps) {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
-  const { useGetAll, useCreate, useUpdate, useDelete } = useCategories();
-  const { data: categories = [], isLoading } = useGetAll();
+  const clientId = selectedClient?.id ?? 0;
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCategories(clientId);
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();

@@ -34,17 +34,19 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   const [isUploadCSVOpen, setIsUploadCSVOpen] = useState(false);
   const { toast } = useToast();
 
+  const clientId = selectedClient?.id ?? 0;
+
   const { useGetAll: useGetTransactions, useDelete: useDeleteTransaction } = useTransactions();
   const { data: transactions = [] } = useGetTransactions();
   const deleteTransactionMutation = useDeleteTransaction();
 
-  const { useGetAll: useGetCategories } = useCategories();
+  const { useGetAll: useGetCategories } = useCategories(clientId);
   const { data: categories = [] } = useGetCategories();
 
-  const { useGetAll: useGetCostCenters } = useCostCenters();
+  const { useGetAll: useGetCostCenters } = useCostCenters(clientId);
   const { data: costCenters = [] } = useGetCostCenters();
 
-  const { useGetAll: useGetPartners } = usePartners();
+  const { useGetAll: useGetPartners } = usePartners(clientId);
   const { data: partners = [] } = useGetPartners();
 
   const columns = [

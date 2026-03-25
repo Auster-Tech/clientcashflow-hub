@@ -26,8 +26,8 @@ interface PartnersProps {
 const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
-  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners();
-  const { data: partners = [], isLoading } = useGetAll();
+  const clientId = selectedClient?.id ?? 0;
+  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners(clientId);
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
