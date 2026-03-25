@@ -29,6 +29,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   const { selectedClient } = useClient();
   const clientId = selectedClient?.id ?? 0;
   const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices(clientId);
+  const { data: invoices = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
