@@ -144,7 +144,7 @@ export function TransactionForm({
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl><SelectTrigger><SelectValue placeholder="Select cost center" /></SelectTrigger></FormControl>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {costCenters.map((cc) => (
                     <SelectItem key={cc.id} value={cc.id.toString()}>{cc.name}</SelectItem>
                   ))}
