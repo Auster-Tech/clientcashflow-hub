@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DataTable } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Building2, MoreHorizontal, Edit, Trash, Users, ExternalLink } from 'lucide-react';
+import { Plus, Search, Building2, MoreHorizontal, Edit, Trash, ExternalLink } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger
@@ -13,47 +13,69 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClientResponse, Status } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useClients } from '@/hooks/useApi';
 
+const emptyClient = { taxId: '', companyName: '', industry: '', email: '', phone: '', address: '', fiscalYearEnd: '' };
+
 const Clients = () => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  const [isEditClientOpen, setIsEditClientOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ClientResponse | null>(null);
-  const [newClient, setNewClient] = useState({
-    taxId: '', companyName: '', industry: '', email: '', phone: '', address: '', fiscalYearEnd: '',
-  });
+  const [clientToEdit, setClientToEdit] = useState<ClientResponse | null>(null);
+  const [newClient, setNewClient] = useState(emptyClient);
+  const [editClient, setEditClient] = useState(emptyClient);
   const { toast } = useToast();
-  const { useGetAll, useCreate, useDelete } = useClients();
+  const { useGetAll, useCreate, useUpdate, useDelete } = useClients();
   const { data: clientList = [], isLoading } = useGetAll();
   const createMutation = useCreate();
+  const updateMutation = useUpdate();
   const deleteMutation = useDelete();
 
   const handleCreateClient = () => {
-    createMutation.mutate({
-      taxId: newClient.taxId,
-      companyName: newClient.companyName,
-      industry: newClient.industry,
-      email: newClient.email,
-      phone: newClient.phone,
-      address: newClient.address,
-      fiscalYearEnd: newClient.fiscalYearEnd,
-      status: Status.ACTIVE,
-    }, {
+    createMutation.mutate({ ...newClient, status: Status.ACTIVE }, {
       onSuccess: () => {
         toast({ title: t('common.add'), description: "Client added successfully." });
         setIsAddClientOpen(false);
-        setNewClient({ taxId: '', companyName: '', industry: '', email: '', phone: '', address: '', fiscalYearEnd: '' });
+        setNewClient(emptyClient);
       },
       onError: (error) => {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       },
     });
+  };
+
+  const handleEditClient = () => {
+    if (!clientToEdit) return;
+    updateMutation.mutate({ id: clientToEdit.id, data: { ...editClient, status: clientToEdit.status } }, {
+      onSuccess: () => {
+        toast({ title: t('common.edit'), description: "Client updated successfully." });
+        setIsEditClientOpen(false);
+        setClientToEdit(null);
+      },
+      onError: (error) => {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      },
+    });
+  };
+
+  const openEditDialog = (client: ClientResponse) => {
+    setClientToEdit(client);
+    setEditClient({
+      taxId: client.tax_id || '',
+      companyName: client.company_name || '',
+      industry: client.industry || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      address: client.address || '',
+      fiscalYearEnd: client.fiscal_year_end || '',
+    });
+    setIsEditClientOpen(true);
   };
 
   const handleDeleteClient = () => {
@@ -121,7 +143,9 @@ const Clients = () => {
                   <ExternalLink className="mr-2 h-4 w-4" />View Details
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center cursor-pointer"><Edit className="mr-2 h-4 w-4" />{t('common.edit')}</DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => openEditDialog(row.original)}>
+                <Edit className="mr-2 h-4 w-4" />{t('common.edit')}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="flex items-center text-destructive focus:text-destructive cursor-pointer"
@@ -140,6 +164,18 @@ const Clients = () => {
     (client.company_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (client.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (client.industry || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const clientFormFields = (values: typeof emptyClient, onChange: (v: typeof emptyClient) => void) => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2"><Label>Tax ID</Label><Input placeholder="Enter tax ID" value={values.taxId} onChange={(e) => onChange({ ...values, taxId: e.target.value })} /></div>
+      <div className="space-y-2"><Label>Company Name</Label><Input placeholder="Enter company name" value={values.companyName} onChange={(e) => onChange({ ...values, companyName: e.target.value })} /></div>
+      <div className="space-y-2"><Label>Industry</Label><Input placeholder="Enter industry" value={values.industry} onChange={(e) => onChange({ ...values, industry: e.target.value })} /></div>
+      <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="company@example.com" value={values.email} onChange={(e) => onChange({ ...values, email: e.target.value })} /></div>
+      <div className="space-y-2"><Label>Phone</Label><Input placeholder="(555) 123-4567" value={values.phone} onChange={(e) => onChange({ ...values, phone: e.target.value })} /></div>
+      <div className="space-y-2"><Label>Fiscal Year End</Label><Input placeholder="e.g. December" value={values.fiscalYearEnd} onChange={(e) => onChange({ ...values, fiscalYearEnd: e.target.value })} /></div>
+      <div className="space-y-2 col-span-2"><Label>Address</Label><Input placeholder="Enter company address" value={values.address} onChange={(e) => onChange({ ...values, address: e.target.value })} /></div>
+    </div>
   );
 
   return (
@@ -163,20 +199,11 @@ const Clients = () => {
         <DataTable columns={columns} data={filteredClients} />
       </div>
 
+      {/* Add Client Dialog */}
       <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader><DialogTitle>{t('common.add')} New Client</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label htmlFor="tax-id">Tax ID</Label><Input id="tax-id" placeholder="Enter tax ID" value={newClient.taxId} onChange={(e) => setNewClient(p => ({ ...p, taxId: e.target.value }))} /></div>
-              <div className="space-y-2"><Label htmlFor="company-name">Company Name</Label><Input id="company-name" placeholder="Enter company name" value={newClient.companyName} onChange={(e) => setNewClient(p => ({ ...p, companyName: e.target.value }))} /></div>
-              <div className="space-y-2"><Label htmlFor="industry">Industry</Label><Input id="industry" placeholder="Enter industry" value={newClient.industry} onChange={(e) => setNewClient(p => ({ ...p, industry: e.target.value }))} /></div>
-              <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="company@example.com" value={newClient.email} onChange={(e) => setNewClient(p => ({ ...p, email: e.target.value }))} /></div>
-              <div className="space-y-2"><Label htmlFor="phone">Phone</Label><Input id="phone" placeholder="(555) 123-4567" value={newClient.phone} onChange={(e) => setNewClient(p => ({ ...p, phone: e.target.value }))} /></div>
-              <div className="space-y-2"><Label htmlFor="fiscal-year">Fiscal Year End</Label><Input id="fiscal-year" placeholder="e.g. December" value={newClient.fiscalYearEnd} onChange={(e) => setNewClient(p => ({ ...p, fiscalYearEnd: e.target.value }))} /></div>
-              <div className="space-y-2 col-span-2"><Label htmlFor="address">Address</Label><Input id="address" placeholder="Enter company address" value={newClient.address} onChange={(e) => setNewClient(p => ({ ...p, address: e.target.value }))} /></div>
-            </div>
-          </div>
+          <div className="space-y-4">{clientFormFields(newClient, setNewClient)}</div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddClientOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleCreateClient} disabled={createMutation.isPending}>
@@ -186,6 +213,21 @@ const Clients = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Client Dialog */}
+      <Dialog open={isEditClientOpen} onOpenChange={setIsEditClientOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader><DialogTitle>{t('common.edit')} Client</DialogTitle></DialogHeader>
+          <div className="space-y-4">{clientFormFields(editClient, setEditClient)}</div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditClientOpen(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleEditClient} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? 'Saving...' : t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Client Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader><DialogTitle>{t('common.delete')} Client</DialogTitle></DialogHeader>
