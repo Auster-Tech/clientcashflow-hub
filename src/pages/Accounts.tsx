@@ -6,14 +6,13 @@ import { Input } from "@/components/ui/input";
 import { UserRole } from "@/types";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StatsCard } from "@/components/ui/StatsCard";
 import { Badge } from "@/components/ui/badge";
-import { Plus, CreditCard, Wallet, DollarSign, PiggyBank, Banknote, CircleDollarSign, Search } from 'lucide-react';
+import { Plus, Wallet, Search } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/TranslationContext";
 import { useAccounts } from "@/hooks/useApi";
 import { useClient } from "@/contexts/ClientContext";
+import { ClientSelector } from "@/components/ui/ClientSelector";
 
 interface AccountsProps {
   userRole: UserRole;
@@ -41,8 +40,11 @@ const Accounts = ({ userRole }: AccountsProps) => {
               <p className="text-muted-foreground">{t('accounts.subtitle')}</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <ClientSelector userRole={userRole} />
+          </div>
           <div className="flex items-center justify-center min-h-[400px]">
-            <p className="text-lg text-muted-foreground">Please select a client to view accounts.</p>
+            <p className="text-lg text-muted-foreground">{t('common.selectClient')}</p>
           </div>
         </div>
       </DashboardLayout>
@@ -66,6 +68,12 @@ const Accounts = ({ userRole }: AccountsProps) => {
             <Plus className="h-4 w-4" />{t('accounts.addAccount')}
           </Button>
         </div>
+
+        {userRole === 'accountant' && (
+          <div className="flex items-center gap-2">
+            <ClientSelector userRole={userRole} />
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">

@@ -1,27 +1,83 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CompanyUser } from '@/types';
-import { Building2, Users, FileText, Mail, Phone, MapPin, Calendar, Tag, Edit, Plus, ArrowLeft } from 'lucide-react';
+import { CompanyUser, Status } from '@/types';
+import { Building2, Users, Mail, Phone, MapPin, Edit, Plus, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useClients, useClientUsers } from '@/hooks/useApi';
+import { useToast } from '@/hooks/use-toast';
 
 const ClientDetails = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState('overview');
   const clientId = parseInt(id || '0', 10);
 
-  const { useGetById } = useClients();
-  const { data: client, isLoading: clientLoading } = useGetById(clientId);
+  // Edit client state
+  const [isEditClientOpen, setIsEditClientOpen] = useState(false);
+  const [editClient, setEditClient] = useState({ taxId: '', companyName: '', industry: '', email: '', phone: '', address: '', fiscalYearEnd: '' });
 
-  const { useGetAll: useGetUsers } = useClientUsers(clientId);
+  // Add user state
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ name: '', email: '', is_admin: false });
+
+  const { useGetById, useUpdate } = useClients();
+  const { data: client, isLoading: clientLoading } = useGetById(clientId);
+  const updateClientMutation = useUpdate();
+
+  const { useGetAll: useGetUsers, useCreate: useCreateUser } = useClientUsers(clientId);
   const { data: users = [], isLoading: usersLoading } = useGetUsers();
+  const createUserMutation = useCreateUser();
+
+  const openEditClient = () => {
+    if (!client) return;
+    setEditClient({
+      taxId: client.tax_id || '',
+      companyName: client.company_name || '',
+      industry: client.industry || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      address: client.address || '',
+      fiscalYearEnd: client.fiscal_year_end || '',
+    });
+    setIsEditClientOpen(true);
+  };
+
+  const handleUpdateClient = () => {
+    updateClientMutation.mutate({ id: clientId, data: { ...editClient, status: client?.status ?? Status.ACTIVE } }, {
+      onSuccess: () => {
+        toast({ title: "Success", description: "Client updated successfully." });
+        setIsEditClientOpen(false);
+      },
+      onError: (error) => {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      },
+    });
+  };
+
+  const handleAddUser = () => {
+    createUserMutation.mutate({ name: newUser.name, email: newUser.email, isAdmin: newUser.is_admin, status: Status.ACTIVE }, {
+      onSuccess: () => {
+        toast({ title: "Success", description: "User added successfully." });
+        setIsAddUserOpen(false);
+        setNewUser({ name: '', email: '', is_admin: false });
+      },
+      onError: (error) => {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      },
+    });
+  };
 
   if (clientLoading) {
     return (
@@ -45,8 +101,8 @@ const ClientDetails = () => {
             <p className="text-muted-foreground">Client ID: {id}</p>
           </div>
           <div className="ml-auto flex gap-2">
-            <Button variant="outline" className="gap-2"><Edit className="h-4 w-4" />{t('clients.editClient')}</Button>
-            <Button className="gap-2"><Plus className="h-4 w-4" />{t('clientDetails.addUser')}</Button>
+            <Button variant="outline" className="gap-2" onClick={openEditClient}><Edit className="h-4 w-4" />{t('clients.editClient')}</Button>
+            <Button className="gap-2" onClick={() => setIsAddUserOpen(true)}><Plus className="h-4 w-4" />{t('clientDetails.addUser')}</Button>
           </div>
         </div>
 
@@ -112,7 +168,7 @@ const ClientDetails = () => {
                       <Badge>{user.is_admin ? 'Admin' : 'User'}</Badge>
                     </div>
                   ))}
-                  <Button variant="outline" className="w-full gap-2"><Plus className="h-4 w-4" />{t('clientDetails.addUser')}</Button>
+                  <Button variant="outline" className="w-full gap-2" onClick={() => setIsAddUserOpen(true)}><Plus className="h-4 w-4" />{t('clientDetails.addUser')}</Button>
                 </CardContent>
               </Card>
             </div>
@@ -125,7 +181,7 @@ const ClientDetails = () => {
                   <CardTitle>{t('clientDetails.clientUsers')}</CardTitle>
                   <CardDescription>{t('clientDetails.manageUsers')}</CardDescription>
                 </div>
-                <Button className="gap-2"><Plus className="h-4 w-4" />{t('clientDetails.addUser')}</Button>
+                <Button className="gap-2" onClick={() => setIsAddUserOpen(true)}><Plus className="h-4 w-4" />{t('clientDetails.addUser')}</Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -150,6 +206,49 @@ const ClientDetails = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Edit Client Dialog */}
+      <Dialog open={isEditClientOpen} onOpenChange={setIsEditClientOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader><DialogTitle>{t('common.edit')} Client</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>Tax ID</Label><Input value={editClient.taxId} onChange={(e) => setEditClient(p => ({ ...p, taxId: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Company Name</Label><Input value={editClient.companyName} onChange={(e) => setEditClient(p => ({ ...p, companyName: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Industry</Label><Input value={editClient.industry} onChange={(e) => setEditClient(p => ({ ...p, industry: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Email</Label><Input value={editClient.email} onChange={(e) => setEditClient(p => ({ ...p, email: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Phone</Label><Input value={editClient.phone} onChange={(e) => setEditClient(p => ({ ...p, phone: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Fiscal Year End</Label><Input value={editClient.fiscalYearEnd} onChange={(e) => setEditClient(p => ({ ...p, fiscalYearEnd: e.target.value }))} /></div>
+            <div className="space-y-2 col-span-2"><Label>Address</Label><Input value={editClient.address} onChange={(e) => setEditClient(p => ({ ...p, address: e.target.value }))} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditClientOpen(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleUpdateClient} disabled={updateClientMutation.isPending}>
+              {updateClientMutation.isPending ? 'Saving...' : t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add User Dialog */}
+      <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader><DialogTitle>{t('clientDetails.addUser')}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2"><Label>Name</Label><Input placeholder="User name" value={newUser.name} onChange={(e) => setNewUser(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="user@example.com" value={newUser.email} onChange={(e) => setNewUser(p => ({ ...p, email: e.target.value }))} /></div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="is-admin" checked={newUser.is_admin} onCheckedChange={(checked) => setNewUser(p => ({ ...p, is_admin: !!checked }))} />
+              <Label htmlFor="is-admin">Admin</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleAddUser} disabled={createUserMutation.isPending}>
+              {createUserMutation.isPending ? 'Saving...' : t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
