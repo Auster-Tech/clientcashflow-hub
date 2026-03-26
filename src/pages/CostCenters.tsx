@@ -60,7 +60,7 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
     });
   };
 
-  const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id'>) => {
+  const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id' | 'client_id'>) => {
     const payload = { ...costCenterData, client_id: clientId };
     if (editingCostCenter) {
       updateMutation.mutate({ id: editingCostCenter.id, data: payload }, {

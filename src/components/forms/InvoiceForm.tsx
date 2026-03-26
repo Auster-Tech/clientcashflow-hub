@@ -26,7 +26,7 @@ type InvoiceFormData = z.infer<typeof invoiceFormSchema>;
 
 interface InvoiceFormProps {
   invoice?: Invoice | null;
-  onSubmit: (data: Omit<Invoice, 'id'>) => void;
+  onSubmit: (data: Omit<Invoice, 'id' | 'client_id'>) => void;
   onCancel: () => void;
 }
 

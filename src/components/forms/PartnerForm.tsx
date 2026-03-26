@@ -24,7 +24,7 @@ type PartnerFormData = z.infer<typeof partnerFormSchema>;
 
 interface PartnerFormProps {
   partner?: Partner | null;
-  onSubmit: (data: Omit<Partner, 'id'>) => void;
+  onSubmit: (data: Omit<Partner, 'id' | 'client_id'>) => void;
   onCancel: () => void;
 }
 

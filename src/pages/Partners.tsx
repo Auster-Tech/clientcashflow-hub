@@ -62,7 +62,7 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
     });
   };
 
-  const handleFormSubmit = (partnerData: Omit<Partner, 'id'>) => {
+  const handleFormSubmit = (partnerData: Omit<Partner, 'id' | 'client_id'>) => {
     const payload = { ...partnerData, client_id: clientId };
     if (editingPartner) {
       updateMutation.mutate({ id: editingPartner.id, data: payload }, {

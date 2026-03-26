@@ -63,7 +63,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     });
   };
 
-  const handleFormSubmit = (invoiceData: Omit<Invoice, 'id'>) => {
+  const handleFormSubmit = (invoiceData: Omit<Invoice, 'id' | 'client_id'>) => {
     const payload = { ...invoiceData, client_id: clientId };
     if (editingInvoice) {
       updateMutation.mutate({ id: editingInvoice.id, data: payload }, {
