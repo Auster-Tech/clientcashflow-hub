@@ -24,7 +24,7 @@ export default function Categories({ userRole }: CategoriesProps) {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
   const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = useCategories(clientId);
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCategories();
   const { data: categories = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
