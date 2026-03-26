@@ -82,7 +82,7 @@ const Clients = () => {
     if (clientToDelete) {
       deleteMutation.mutate(clientToDelete.id, {
         onSuccess: () => {
-          toast({ title: t('common.delete'), description: `${clientToDelete?.company_name} has been removed.` });
+          toast({ title: t('common.delete'), description: `${(clientToDelete as any)?.companyName || clientToDelete?.company_name} has been removed.` });
           setIsDeleteDialogOpen(false);
           setClientToDelete(null);
         },
