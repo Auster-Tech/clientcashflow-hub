@@ -36,7 +36,7 @@ type CategoryFormData = z.infer<typeof categoryFormSchema>;
 
 interface CategoryFormProps {
   category?: Category | null;
-  onSubmit: (data: Omit<Category, 'id'>) => void;
+  onSubmit: (data: Omit<Category, 'id' | 'client_id'>) => void;
   onCancel: () => void;
 }
 

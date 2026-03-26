@@ -47,7 +47,7 @@ export default function Categories({ userRole }: CategoriesProps) {
     setUploadDialogOpen(false);
   };
 
-  const handleSubmit = (data: Omit<Category, 'id'>) => {
+  const handleSubmit = (data: Omit<Category, 'id' | 'client_id'>) => {
     const payload = { ...data, client_id: clientId };
     if (editingCategory) {
       updateMutation.mutate({ id: editingCategory.id, data: payload }, {
