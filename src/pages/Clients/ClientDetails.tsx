@@ -199,7 +199,10 @@ const ClientDetails = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <Badge variant={user.is_admin ? 'default' : 'outline'}>{user.is_admin ? 'Admin' : 'User'}</Badge>
-                        <Button variant="outline" size="sm">{t('accounts.manage')}</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setEditingUser({ index, name: user.name, email: user.email, is_admin: user.is_admin });
+                          setIsEditUserOpen(true);
+                        }}>{t('accounts.manage')}</Button>
                       </div>
                     </div>
                   ))}

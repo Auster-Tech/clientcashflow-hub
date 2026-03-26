@@ -232,7 +232,7 @@ const Clients = () => {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader><DialogTitle>{t('common.delete')} Client</DialogTitle></DialogHeader>
           <div className="py-4">
-            <p>Are you sure you want to delete <span className="font-semibold">{clientToDelete?.company_name}</span>?</p>
+            <p>Are you sure you want to delete <span className="font-semibold">{(clientToDelete as any)?.companyName || clientToDelete?.company_name}</span>?</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
