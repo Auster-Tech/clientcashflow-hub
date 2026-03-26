@@ -92,13 +92,13 @@ const Clients = () => {
 
   const columns = [
     {
-      accessorKey: 'company_name',
+      accessorKey: 'companyName',
       header: 'Company',
       cell: ({ row }: any) => (
         <div className="flex items-center gap-2">
           <div className="rounded-full bg-primary/10 p-2"><Building2 className="h-4 w-4 text-primary" /></div>
           <div>
-            <div className="font-medium">{row.original.company_name}</div>
+            <div className="font-medium">{row.original.companyName || row.original.company_name}</div>
             <div className="text-sm text-muted-foreground">{row.original.industry}</div>
           </div>
         </div>
@@ -114,7 +114,7 @@ const Clients = () => {
         </div>
       ),
     },
-    { accessorKey: 'fiscal_year_end', header: 'Fiscal Year End' },
+    { accessorKey: 'fiscalYearEnd', header: 'Fiscal Year End', cell: ({ row }: any) => row.original.fiscalYearEnd || row.original.fiscal_year_end || '-' },
     {
       accessorKey: 'status',
       header: t('common.status'),
