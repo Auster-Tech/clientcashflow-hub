@@ -63,12 +63,13 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   };
 
   const handleFormSubmit = (partnerData: Omit<Partner, 'id'>) => {
+    const payload = { ...partnerData, client_id: clientId };
     if (editingPartner) {
-      updateMutation.mutate({ id: editingPartner.id, data: partnerData }, {
+      updateMutation.mutate({ id: editingPartner.id, data: payload }, {
         onSuccess: () => { toast({ title: t('partners.update'), description: t('common.update') }); setIsFormOpen(false); setEditingPartner(null); },
       });
     } else {
-      createMutation.mutate(partnerData, {
+      createMutation.mutate(payload, {
         onSuccess: () => { toast({ title: t('partners.create'), description: t('common.create') }); setIsFormOpen(false); setEditingPartner(null); },
       });
     }
