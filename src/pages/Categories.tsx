@@ -47,12 +47,13 @@ export default function Categories({ userRole }: CategoriesProps) {
   };
 
   const handleSubmit = (data: Omit<Category, 'id'>) => {
+    const payload = { ...data, client_id: clientId };
     if (editingCategory) {
-      updateMutation.mutate({ id: editingCategory.id, data }, {
+      updateMutation.mutate({ id: editingCategory.id, data: payload }, {
         onSuccess: () => { setDialogOpen(false); setEditingCategory(null); },
       });
     } else {
-      createMutation.mutate(data, {
+      createMutation.mutate(payload, {
         onSuccess: () => { setDialogOpen(false); setEditingCategory(null); },
       });
     }
