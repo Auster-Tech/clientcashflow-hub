@@ -104,6 +104,7 @@ export interface CostCenter {
 
 export interface Invoice {
   id: number;
+  client_id: number;
   invoice_number: string;
   issue_date: string;
   due_date: string;
