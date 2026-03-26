@@ -131,11 +131,11 @@ const ClientDetails = () => {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">{t('clients.fiscalYear')}</p>
-                      <p className="font-medium">{client?.fiscal_year_end}</p>
+                      <p className="font-medium">{(client as any)?.fiscalYearEnd || client?.fiscal_year_end}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">Tax ID</p>
-                      <p className="font-medium">{client?.tax_id}</p>
+                      <p className="font-medium">{(client as any)?.taxId || client?.tax_id}</p>
                     </div>
                   </div>
                   <Separator className="my-4" />
