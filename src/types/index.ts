@@ -71,6 +71,7 @@ export type CategoryType = "expense" | "income";
 
 export interface Category {
   id: number;
+  client_id: number;
   name: string;
   description?: string;
   type: CategoryType;
