@@ -25,7 +25,7 @@ type CostCenterFormData = z.infer<typeof costCenterFormSchema>;
 
 interface CostCenterFormProps {
   costCenter?: CostCenter | null;
-  onSubmit: (data: Omit<CostCenter, 'id'>) => void;
+  onSubmit: (data: Omit<CostCenter, 'id' | 'client_id'>) => void;
   onCancel: () => void;
 }
 

@@ -75,44 +75,44 @@ export const accountBalanceApi = {
   delete: (accountId: number, balanceId: number) => request<void>(`/account-balance/${accountId}/${balanceId}`, { method: 'DELETE' }),
 };
 
-// Categories (scoped to client)
+// Categories
 export const categoriesApi = {
-  getAll: (clientId: number) => request<any[]>(`/clients/${clientId}/category/`),
-  create: (clientId: number, data: any) => request<any>(`/clients/${clientId}/category/`, { method: 'POST', body: JSON.stringify(data) }),
-  update: (clientId: number, id: number, data: any) => request<any>(`/clients/${clientId}/category/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (clientId: number, id: number) => request<void>(`/clients/${clientId}/category/${id}`, { method: 'DELETE' }),
+  getAll: () => request<any[]>('/category/'),
+  create: (data: any) => request<any>('/category/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: any) => request<any>(`/category/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) => request<void>(`/category/${id}`, { method: 'DELETE' }),
 };
 
-// Partners (scoped to client)
+// Partners
 export const partnersApi = {
-  getAll: (clientId: number) => request<any[]>(`/clients/${clientId}/partner/`),
-  create: (clientId: number, data: any) => request<any>(`/clients/${clientId}/partner/`, { method: 'POST', body: JSON.stringify(data) }),
-  update: (clientId: number, id: number, data: any) => request<any>(`/clients/${clientId}/partner/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (clientId: number, id: number) => request<void>(`/clients/${clientId}/partner/${id}`, { method: 'DELETE' }),
+  getAll: () => request<any[]>('/partner/'),
+  create: (data: any) => request<any>('/partner/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: any) => request<any>(`/partner/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) => request<void>(`/partner/${id}`, { method: 'DELETE' }),
 };
 
-// Cost Centers (scoped to client)
+// Cost Centers
 export const costCentersApi = {
-  getAll: (clientId: number) => request<any[]>(`/clients/${clientId}/cost-center/`),
-  create: (clientId: number, data: any) => request<any>(`/clients/${clientId}/cost-center/`, { method: 'POST', body: JSON.stringify(data) }),
-  update: (clientId: number, id: number, data: any) => request<any>(`/clients/${clientId}/cost-center/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (clientId: number, id: number) => request<void>(`/clients/${clientId}/cost-center/${id}`, { method: 'DELETE' }),
+  getAll: () => request<any[]>('/cost-center/'),
+  create: (data: any) => request<any>('/cost-center/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: any) => request<any>(`/cost-center/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) => request<void>(`/cost-center/${id}`, { method: 'DELETE' }),
 };
 
-// Invoices (scoped to client)
+// Invoices
 export const invoicesApi = {
-  getAll: (clientId: number) => request<any[]>(`/clients/${clientId}/invoice/`),
-  create: (clientId: number, data: any) => request<any>(`/clients/${clientId}/invoice/`, { method: 'POST', body: JSON.stringify(data) }),
-  update: (clientId: number, id: number, data: any) => request<any>(`/clients/${clientId}/invoice/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (clientId: number, id: number) => request<void>(`/clients/${clientId}/invoice/${id}`, { method: 'DELETE' }),
+  getAll: () => request<any[]>('/invoice/'),
+  create: (data: any) => request<any>('/invoice/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: any) => request<any>(`/invoice/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) => request<void>(`/invoice/${id}`, { method: 'DELETE' }),
 };
 
-// Transaction Status (scoped to client)
+// Transaction Status
 export const transactionStatusApi = {
-  getAll: (clientId: number) => request<any[]>(`/clients/${clientId}/transaction-status/`),
-  create: (clientId: number, data: any) => request<any>(`/clients/${clientId}/transaction-status/`, { method: 'POST', body: JSON.stringify(data) }),
-  update: (clientId: number, id: number, data: any) => request<any>(`/clients/${clientId}/transaction-status/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (clientId: number, id: number) => request<void>(`/clients/${clientId}/transaction-status/${id}`, { method: 'DELETE' }),
+  getAll: () => request<any[]>('/transaction-status/'),
+  create: (data: any) => request<any>('/transaction-status/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: any) => request<any>(`/transaction-status/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) => request<void>(`/transaction-status/${id}`, { method: 'DELETE' }),
 };
 
 // Transactions (scoped to account)

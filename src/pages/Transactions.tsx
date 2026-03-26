@@ -40,13 +40,13 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   const { data: transactions = [] } = useGetTransactions();
   const deleteTransactionMutation = useDeleteTransaction();
 
-  const { useGetAll: useGetCategories } = useCategories(clientId);
+  const { useGetAll: useGetCategories } = useCategories();
   const { data: categories = [] } = useGetCategories();
 
-  const { useGetAll: useGetCostCenters } = useCostCenters(clientId);
+  const { useGetAll: useGetCostCenters } = useCostCenters();
   const { data: costCenters = [] } = useGetCostCenters();
 
-  const { useGetAll: useGetPartners } = usePartners(clientId);
+  const { useGetAll: useGetPartners } = usePartners();
   const { data: partners = [] } = useGetPartners();
 
   const columns = [

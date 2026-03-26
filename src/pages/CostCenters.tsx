@@ -26,7 +26,7 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
   const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = useCostCenters(clientId);
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCostCenters();
   const { data: costCenters = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
@@ -60,13 +60,14 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
     });
   };
 
-  const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id'>) => {
+  const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id' | 'client_id'>) => {
+    const payload = { ...costCenterData, client_id: clientId };
     if (editingCostCenter) {
-      updateMutation.mutate({ id: editingCostCenter.id, data: costCenterData }, {
+      updateMutation.mutate({ id: editingCostCenter.id, data: payload }, {
         onSuccess: () => { toast({ title: t('costCenters.update'), description: t('common.update') }); setIsFormOpen(false); setEditingCostCenter(null); },
       });
     } else {
-      createMutation.mutate(costCenterData, {
+      createMutation.mutate(payload, {
         onSuccess: () => { toast({ title: t('costCenters.create'), description: t('common.create') }); setIsFormOpen(false); setEditingCostCenter(null); },
       });
     }

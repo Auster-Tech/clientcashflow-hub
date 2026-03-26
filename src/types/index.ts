@@ -71,6 +71,7 @@ export type CategoryType = "expense" | "income";
 
 export interface Category {
   id: number;
+  client_id: number;
   name: string;
   description?: string;
   type: CategoryType;
@@ -79,6 +80,7 @@ export interface Category {
 
 export interface TransactionStatus {
   id: number;
+  client_id: number;
   name: string;
   description?: string;
   status: Status;
@@ -86,6 +88,7 @@ export interface TransactionStatus {
 
 export interface Partner {
   id: number;
+  client_id: number;
   name: string;
   contact_info?: string;
   status: Status;
@@ -93,6 +96,7 @@ export interface Partner {
 
 export interface CostCenter {
   id: number;
+  client_id: number;
   name: string;
   description?: string;
   status: Status;
@@ -100,6 +104,7 @@ export interface CostCenter {
 
 export interface Invoice {
   id: number;
+  client_id: number;
   invoice_number: string;
   issue_date: string;
   due_date: string;

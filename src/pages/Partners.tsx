@@ -27,7 +27,7 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
   const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners(clientId);
+  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners();
   const { data: partners = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
@@ -62,13 +62,14 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
     });
   };
 
-  const handleFormSubmit = (partnerData: Omit<Partner, 'id'>) => {
+  const handleFormSubmit = (partnerData: Omit<Partner, 'id' | 'client_id'>) => {
+    const payload = { ...partnerData, client_id: clientId };
     if (editingPartner) {
-      updateMutation.mutate({ id: editingPartner.id, data: partnerData }, {
+      updateMutation.mutate({ id: editingPartner.id, data: payload }, {
         onSuccess: () => { toast({ title: t('partners.update'), description: t('common.update') }); setIsFormOpen(false); setEditingPartner(null); },
       });
     } else {
-      createMutation.mutate(partnerData, {
+      createMutation.mutate(payload, {
         onSuccess: () => { toast({ title: t('partners.create'), description: t('common.create') }); setIsFormOpen(false); setEditingPartner(null); },
       });
     }
@@ -80,6 +81,7 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
         name: row.name || row.Name || '',
         contact_info: row.contact_info || row.email || '',
         status: Status.ACTIVE,
+        client_id: clientId,
       });
     });
     setIsUploadOpen(false);

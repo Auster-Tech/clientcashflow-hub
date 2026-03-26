@@ -28,7 +28,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
   const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices(clientId);
+  const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices();
   const { data: invoices = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
@@ -63,13 +63,14 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     });
   };
 
-  const handleFormSubmit = (invoiceData: Omit<Invoice, 'id'>) => {
+  const handleFormSubmit = (invoiceData: Omit<Invoice, 'id' | 'client_id'>) => {
+    const payload = { ...invoiceData, client_id: clientId };
     if (editingInvoice) {
-      updateMutation.mutate({ id: editingInvoice.id, data: invoiceData }, {
+      updateMutation.mutate({ id: editingInvoice.id, data: payload }, {
         onSuccess: () => { toast({ title: t('toast.invoiceUpdated') }); setIsFormOpen(false); setEditingInvoice(null); },
       });
     } else {
-      createMutation.mutate(invoiceData, {
+      createMutation.mutate(payload, {
         onSuccess: () => { toast({ title: t('toast.invoiceCreated') }); setIsFormOpen(false); setEditingInvoice(null); },
       });
     }
@@ -83,6 +84,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         due_date: row.due_date || row.dueDate || '',
         amount: parseFloat(row.amount) || 0,
         status: Status.ACTIVE,
+        client_id: clientId,
       });
     });
     setIsUploadOpen(false);
