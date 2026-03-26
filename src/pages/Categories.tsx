@@ -41,6 +41,7 @@ export default function Categories({ userRole }: CategoriesProps) {
         type: item.type || 'expense',
         description: item.description || '',
         status: Status.ACTIVE,
+        client_id: clientId,
       });
     });
     setUploadDialogOpen(false);

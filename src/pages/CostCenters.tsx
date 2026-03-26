@@ -61,12 +61,13 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   };
 
   const handleFormSubmit = (costCenterData: Omit<CostCenter, 'id'>) => {
+    const payload = { ...costCenterData, client_id: clientId };
     if (editingCostCenter) {
-      updateMutation.mutate({ id: editingCostCenter.id, data: costCenterData }, {
+      updateMutation.mutate({ id: editingCostCenter.id, data: payload }, {
         onSuccess: () => { toast({ title: t('costCenters.update'), description: t('common.update') }); setIsFormOpen(false); setEditingCostCenter(null); },
       });
     } else {
-      createMutation.mutate(costCenterData, {
+      createMutation.mutate(payload, {
         onSuccess: () => { toast({ title: t('costCenters.create'), description: t('common.create') }); setIsFormOpen(false); setEditingCostCenter(null); },
       });
     }

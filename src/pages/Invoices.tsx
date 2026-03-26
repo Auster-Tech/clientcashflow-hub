@@ -84,6 +84,7 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         due_date: row.due_date || row.dueDate || '',
         amount: parseFloat(row.amount) || 0,
         status: Status.ACTIVE,
+        client_id: clientId,
       });
     });
     setIsUploadOpen(false);

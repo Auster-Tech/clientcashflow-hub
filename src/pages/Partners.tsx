@@ -81,6 +81,7 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
         name: row.name || row.Name || '',
         contact_info: row.contact_info || row.email || '',
         status: Status.ACTIVE,
+        client_id: clientId,
       });
     });
     setIsUploadOpen(false);
