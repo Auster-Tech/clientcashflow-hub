@@ -80,38 +80,11 @@ function useSimpleCrud(key: string, api: {
   };
 }
 
-// --- Client-scoped CRUD hook factory ---
-function useClientScopedCrud(key: string, clientId: number, api: {
-  getAll: (clientId: number) => Promise<any[]>;
-  create: (clientId: number, data: any) => Promise<any>;
-  update: (clientId: number, id: number, data: any) => Promise<any>;
-  delete: (clientId: number, id: number) => Promise<void>;
-}) {
-  const queryClient = useQueryClient();
-  return {
-    useGetAll: () => useQuery({ queryKey: [key, clientId], queryFn: () => api.getAll(clientId), enabled: !!clientId }),
-    useCreate: () => useMutation({
-      mutationFn: (data: any) => api.create(clientId, data),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key, clientId] }),
-    }),
-    useUpdate: () => useMutation({
-      mutationFn: ({ id, data }: { id: number; data: any }) => api.update(clientId, id, data),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key, clientId] }),
-    }),
-    useDelete: () => useMutation({
-      mutationFn: (id: number) => api.delete(clientId, id),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key, clientId] }),
-    }),
-  };
-}
-
-export const useAccountTypes = () => useSimpleCrud('accountTypes', accountTypesApi);
-export const useAccountCurrencies = () => useSimpleCrud('accountCurrencies', accountCurrenciesApi);
-export const useCategories = (clientId: number) => useClientScopedCrud('categories', clientId, categoriesApi);
-export const usePartners = (clientId: number) => useClientScopedCrud('partners', clientId, partnersApi);
-export const useCostCenters = (clientId: number) => useClientScopedCrud('costCenters', clientId, costCentersApi);
-export const useInvoices = (clientId: number) => useClientScopedCrud('invoices', clientId, invoicesApi);
-export const useTransactionStatuses = (clientId: number) => useClientScopedCrud('transactionStatuses', clientId, transactionStatusApi);
+export const useCategories = () => useSimpleCrud('categories', categoriesApi);
+export const usePartners = () => useSimpleCrud('partners', partnersApi);
+export const useCostCenters = () => useSimpleCrud('costCenters', costCentersApi);
+export const useInvoices = () => useSimpleCrud('invoices', invoicesApi);
+export const useTransactionStatuses = () => useSimpleCrud('transactionStatuses', transactionStatusApi);
 
 // --- Financial Accounts (scoped to client) ---
 export const useAccounts = (clientId: number) => {
