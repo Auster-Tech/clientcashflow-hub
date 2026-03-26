@@ -27,7 +27,7 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
   const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners(clientId);
+  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners();
   const { data: partners = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
