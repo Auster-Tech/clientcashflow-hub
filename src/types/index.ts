@@ -80,6 +80,7 @@ export interface Category {
 
 export interface TransactionStatus {
   id: number;
+  client_id: number;
   name: string;
   description?: string;
   status: Status;
