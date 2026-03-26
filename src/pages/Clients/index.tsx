@@ -161,7 +161,7 @@ const Clients = () => {
   ];
 
   const filteredClients = clientList.filter((client: any) =>
-    (client.company_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (client.companyName || client.company_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (client.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (client.industry || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
