@@ -67,13 +67,13 @@ const Clients = () => {
   const openEditDialog = (client: ClientResponse) => {
     setClientToEdit(client);
     setEditClient({
-      taxId: client.tax_id || '',
-      companyName: client.company_name || '',
+      taxId: (client as any).taxId || client.tax_id || '',
+      companyName: (client as any).companyName || client.company_name || '',
       industry: client.industry || '',
       email: client.email || '',
       phone: client.phone || '',
       address: client.address || '',
-      fiscalYearEnd: client.fiscal_year_end || '',
+      fiscalYearEnd: (client as any).fiscalYearEnd || client.fiscal_year_end || '',
     });
     setIsEditClientOpen(true);
   };
