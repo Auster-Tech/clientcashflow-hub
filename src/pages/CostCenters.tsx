@@ -26,7 +26,7 @@ const CostCenters = ({ userRole = 'accountant' }: CostCentersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
   const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = useCostCenters(clientId);
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCostCenters();
   const { data: costCenters = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
