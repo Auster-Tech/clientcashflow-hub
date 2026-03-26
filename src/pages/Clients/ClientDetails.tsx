@@ -255,6 +255,30 @@ const ClientDetails = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader><DialogTitle>{t('common.edit')} User</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2"><Label>Name</Label><Input value={editingUser?.name || ''} onChange={(e) => setEditingUser(p => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div className="space-y-2"><Label>Email</Label><Input type="email" value={editingUser?.email || ''} onChange={(e) => setEditingUser(p => p ? { ...p, email: e.target.value } : p)} /></div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="edit-is-admin" checked={editingUser?.is_admin || false} onCheckedChange={(checked) => setEditingUser(p => p ? { ...p, is_admin: !!checked } : p)} />
+              <Label htmlFor="edit-is-admin">Admin</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>{t('common.cancel')}</Button>
+            <Button onClick={() => {
+              if (!editingUser) return;
+              // For now just close - needs update user API with userId
+              toast({ title: "Info", description: "User management requires user IDs from the backend." });
+              setIsEditUserOpen(false);
+            }}>{t('common.save')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
