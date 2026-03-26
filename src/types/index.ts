@@ -96,6 +96,7 @@ export interface Partner {
 
 export interface CostCenter {
   id: number;
+  client_id: number;
   name: string;
   description?: string;
   status: Status;
