@@ -67,13 +67,13 @@ const Clients = () => {
   const openEditDialog = (client: ClientResponse) => {
     setClientToEdit(client);
     setEditClient({
-      taxId: client.tax_id || '',
-      companyName: client.company_name || '',
+      taxId: (client as any).taxId || client.tax_id || '',
+      companyName: (client as any).companyName || client.company_name || '',
       industry: client.industry || '',
       email: client.email || '',
       phone: client.phone || '',
       address: client.address || '',
-      fiscalYearEnd: client.fiscal_year_end || '',
+      fiscalYearEnd: (client as any).fiscalYearEnd || client.fiscal_year_end || '',
     });
     setIsEditClientOpen(true);
   };
@@ -82,7 +82,7 @@ const Clients = () => {
     if (clientToDelete) {
       deleteMutation.mutate(clientToDelete.id, {
         onSuccess: () => {
-          toast({ title: t('common.delete'), description: `${clientToDelete?.company_name} has been removed.` });
+          toast({ title: t('common.delete'), description: `${(clientToDelete as any)?.companyName || clientToDelete?.company_name} has been removed.` });
           setIsDeleteDialogOpen(false);
           setClientToDelete(null);
         },
@@ -92,13 +92,13 @@ const Clients = () => {
 
   const columns = [
     {
-      accessorKey: 'company_name',
+      accessorKey: 'companyName',
       header: 'Company',
       cell: ({ row }: any) => (
         <div className="flex items-center gap-2">
           <div className="rounded-full bg-primary/10 p-2"><Building2 className="h-4 w-4 text-primary" /></div>
           <div>
-            <div className="font-medium">{row.original.company_name}</div>
+            <div className="font-medium">{row.original.companyName || row.original.company_name}</div>
             <div className="text-sm text-muted-foreground">{row.original.industry}</div>
           </div>
         </div>
@@ -114,7 +114,7 @@ const Clients = () => {
         </div>
       ),
     },
-    { accessorKey: 'fiscal_year_end', header: 'Fiscal Year End' },
+    { accessorKey: 'fiscalYearEnd', header: 'Fiscal Year End', cell: ({ row }: any) => row.original.fiscalYearEnd || row.original.fiscal_year_end || '-' },
     {
       accessorKey: 'status',
       header: t('common.status'),
@@ -161,7 +161,7 @@ const Clients = () => {
   ];
 
   const filteredClients = clientList.filter((client: any) =>
-    (client.company_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (client.companyName || client.company_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (client.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (client.industry || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -232,7 +232,7 @@ const Clients = () => {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader><DialogTitle>{t('common.delete')} Client</DialogTitle></DialogHeader>
           <div className="py-4">
-            <p>Are you sure you want to delete <span className="font-semibold">{clientToDelete?.company_name}</span>?</p>
+            <p>Are you sure you want to delete <span className="font-semibold">{(clientToDelete as any)?.companyName || clientToDelete?.company_name}</span>?</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>{t('common.cancel')}</Button>

@@ -40,16 +40,20 @@ const ClientDetails = () => {
   const { data: users = [], isLoading: usersLoading } = useGetUsers();
   const createUserMutation = useCreateUser();
 
+  // Edit user state
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<{ index: number; name: string; email: string; is_admin: boolean } | null>(null);
+
   const openEditClient = () => {
     if (!client) return;
     setEditClient({
-      taxId: client.tax_id || '',
-      companyName: client.company_name || '',
+      taxId: (client as any).taxId || client.tax_id || '',
+      companyName: (client as any).companyName || client.company_name || '',
       industry: client.industry || '',
       email: client.email || '',
       phone: client.phone || '',
       address: client.address || '',
-      fiscalYearEnd: client.fiscal_year_end || '',
+      fiscalYearEnd: (client as any).fiscalYearEnd || client.fiscal_year_end || '',
     });
     setIsEditClientOpen(true);
   };
@@ -97,8 +101,7 @@ const ClientDetails = () => {
             <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft className="h-4 w-4" /></Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{client?.company_name || 'Client'}</h1>
-            <p className="text-muted-foreground">Client ID: {id}</p>
+            <h1 className="text-3xl font-bold tracking-tight">{(client as any)?.companyName || client?.company_name || 'Client'}</h1>
           </div>
           <div className="ml-auto flex gap-2">
             <Button variant="outline" className="gap-2" onClick={openEditClient}><Edit className="h-4 w-4" />{t('clients.editClient')}</Button>
@@ -128,11 +131,11 @@ const ClientDetails = () => {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">{t('clients.fiscalYear')}</p>
-                      <p className="font-medium">{client?.fiscal_year_end}</p>
+                      <p className="font-medium">{(client as any)?.fiscalYearEnd || client?.fiscal_year_end}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">Tax ID</p>
-                      <p className="font-medium">{client?.tax_id}</p>
+                      <p className="font-medium">{(client as any)?.taxId || client?.tax_id}</p>
                     </div>
                   </div>
                   <Separator className="my-4" />
@@ -196,7 +199,10 @@ const ClientDetails = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <Badge variant={user.is_admin ? 'default' : 'outline'}>{user.is_admin ? 'Admin' : 'User'}</Badge>
-                        <Button variant="outline" size="sm">{t('accounts.manage')}</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setEditingUser({ index, name: user.name, email: user.email, is_admin: user.is_admin });
+                          setIsEditUserOpen(true);
+                        }}>{t('accounts.manage')}</Button>
                       </div>
                     </div>
                   ))}
@@ -246,6 +252,30 @@ const ClientDetails = () => {
             <Button onClick={handleAddUser} disabled={createUserMutation.isPending}>
               {createUserMutation.isPending ? 'Saving...' : t('common.save')}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader><DialogTitle>{t('common.edit')} User</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2"><Label>Name</Label><Input value={editingUser?.name || ''} onChange={(e) => setEditingUser(p => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div className="space-y-2"><Label>Email</Label><Input type="email" value={editingUser?.email || ''} onChange={(e) => setEditingUser(p => p ? { ...p, email: e.target.value } : p)} /></div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="edit-is-admin" checked={editingUser?.is_admin || false} onCheckedChange={(checked) => setEditingUser(p => p ? { ...p, is_admin: !!checked } : p)} />
+              <Label htmlFor="edit-is-admin">Admin</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>{t('common.cancel')}</Button>
+            <Button onClick={() => {
+              if (!editingUser) return;
+              // For now just close - needs update user API with userId
+              toast({ title: "Info", description: "User management requires user IDs from the backend." });
+              setIsEditUserOpen(false);
+            }}>{t('common.save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
