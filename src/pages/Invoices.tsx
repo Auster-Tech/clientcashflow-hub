@@ -64,12 +64,13 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   };
 
   const handleFormSubmit = (invoiceData: Omit<Invoice, 'id'>) => {
+    const payload = { ...invoiceData, client_id: clientId };
     if (editingInvoice) {
-      updateMutation.mutate({ id: editingInvoice.id, data: invoiceData }, {
+      updateMutation.mutate({ id: editingInvoice.id, data: payload }, {
         onSuccess: () => { toast({ title: t('toast.invoiceUpdated') }); setIsFormOpen(false); setEditingInvoice(null); },
       });
     } else {
-      createMutation.mutate(invoiceData, {
+      createMutation.mutate(payload, {
         onSuccess: () => { toast({ title: t('toast.invoiceCreated') }); setIsFormOpen(false); setEditingInvoice(null); },
       });
     }
