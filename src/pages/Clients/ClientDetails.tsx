@@ -40,16 +40,20 @@ const ClientDetails = () => {
   const { data: users = [], isLoading: usersLoading } = useGetUsers();
   const createUserMutation = useCreateUser();
 
+  // Edit user state
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<{ index: number; name: string; email: string; is_admin: boolean } | null>(null);
+
   const openEditClient = () => {
     if (!client) return;
     setEditClient({
-      taxId: client.tax_id || '',
-      companyName: client.company_name || '',
+      taxId: (client as any).taxId || client.tax_id || '',
+      companyName: (client as any).companyName || client.company_name || '',
       industry: client.industry || '',
       email: client.email || '',
       phone: client.phone || '',
       address: client.address || '',
-      fiscalYearEnd: client.fiscal_year_end || '',
+      fiscalYearEnd: (client as any).fiscalYearEnd || client.fiscal_year_end || '',
     });
     setIsEditClientOpen(true);
   };
