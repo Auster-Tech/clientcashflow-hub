@@ -101,8 +101,7 @@ const ClientDetails = () => {
             <Button variant="ghost" size="icon" className="rounded-full"><ArrowLeft className="h-4 w-4" /></Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{client?.company_name || 'Client'}</h1>
-            <p className="text-muted-foreground">Client ID: {id}</p>
+            <h1 className="text-3xl font-bold tracking-tight">{(client as any)?.companyName || client?.company_name || 'Client'}</h1>
           </div>
           <div className="ml-auto flex gap-2">
             <Button variant="outline" className="gap-2" onClick={openEditClient}><Edit className="h-4 w-4" />{t('clients.editClient')}</Button>
