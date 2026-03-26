@@ -88,6 +88,7 @@ export interface TransactionStatus {
 
 export interface Partner {
   id: number;
+  client_id: number;
   name: string;
   contact_info?: string;
   status: Status;
