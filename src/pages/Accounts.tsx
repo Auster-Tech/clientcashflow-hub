@@ -117,19 +117,32 @@ const Accounts = ({ userRole }: AccountsProps) => {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="account-name" className="text-right">{t('accounts.accountName')}</Label>
-              <Input id="account-name" placeholder="e.g. Business Checking" className="col-span-3" />
+              <Input id="account-name" placeholder="e.g. Business Checking" className="col-span-3"
+                value={newAccountName} onChange={(e) => setNewAccountName(e.target.value)} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="institution" className="text-right">{t('accounts.institution')}</Label>
-              <Input id="institution" placeholder={t('accounts.enterInstitution')} className="col-span-3" />
+              <Input id="institution" placeholder={t('accounts.enterInstitution')} className="col-span-3"
+                value={newAccountInstitution} onChange={(e) => setNewAccountInstitution(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddAccountOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={() => {
-              setIsAddAccountOpen(false);
-              toast({ title: t('toast.accountAdded'), description: t('toast.accountAddedDesc') });
-            }}>{t('accounts.addAccount')}</Button>
+              createMutation.mutate({ name: newAccountName, institution: newAccountInstitution, status: 1 }, {
+                onSuccess: () => {
+                  toast({ title: t('toast.accountAdded'), description: t('toast.accountAddedDesc') });
+                  setIsAddAccountOpen(false);
+                  setNewAccountName("");
+                  setNewAccountInstitution("");
+                },
+                onError: (error: any) => {
+                  toast({ title: "Error", description: error.message, variant: "destructive" });
+                },
+              });
+            }} disabled={createMutation.isPending}>
+              {createMutation.isPending ? 'Saving...' : t('accounts.addAccount')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
