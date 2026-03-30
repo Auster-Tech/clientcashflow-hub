@@ -23,6 +23,8 @@ const Accounts = ({ userRole }: AccountsProps) => {
   const { selectedClient } = useClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddAccountOpen, setIsAddAccountOpen] = useState(false);
+  const [newAccountName, setNewAccountName] = useState("");
+  const [newAccountInstitution, setNewAccountInstitution] = useState("");
   const { toast } = useToast();
   
   const clientId = selectedClient?.id || 0;
