@@ -20,7 +20,7 @@ export function ClientProvider({ children }: { children: ReactNode }) {
   // Map backend response to include a `name` field for display
   const clients = rawClients.map((c: any) => ({
     ...c,
-    name: c.company_name || c.name || '',
+    name: c.companyName || c.company_name || c.name || '',
   }));
 
   return (

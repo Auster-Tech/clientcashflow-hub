@@ -271,13 +271,37 @@ const ClientDetails = () => {
             </div>
           </div>
           <DialogFooter>
+            <Button variant="destructive" onClick={() => {
+              if (!editingUser) return;
+              const user = users[editingUser.index] as any;
+              if (!user?.id) return;
+              deleteUserMutation.mutate(user.id, {
+                onSuccess: () => {
+                  toast({ title: "Success", description: "User deleted successfully." });
+                  setIsEditUserOpen(false);
+                  setEditingUser(null);
+                },
+                onError: (error) => toast({ title: "Error", description: error.message, variant: "destructive" }),
+              });
+            }} disabled={deleteUserMutation.isPending}>
+              {deleteUserMutation.isPending ? 'Deleting...' : t('common.delete')}
+            </Button>
             <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={() => {
               if (!editingUser) return;
-              // For now just close - needs update user API with userId
-              toast({ title: "Info", description: "User management requires user IDs from the backend." });
-              setIsEditUserOpen(false);
-            }}>{t('common.save')}</Button>
+              const user = users[editingUser.index] as any;
+              if (!user?.id) return;
+              updateUserMutation.mutate({ userId: user.id, data: { name: editingUser.name, email: editingUser.email, isAdmin: editingUser.is_admin, status: Status.ACTIVE } }, {
+                onSuccess: () => {
+                  toast({ title: "Success", description: "User updated successfully." });
+                  setIsEditUserOpen(false);
+                  setEditingUser(null);
+                },
+                onError: (error) => toast({ title: "Error", description: error.message, variant: "destructive" }),
+              });
+            }} disabled={updateUserMutation.isPending}>
+              {updateUserMutation.isPending ? 'Saving...' : t('common.save')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
