@@ -36,9 +36,11 @@ const ClientDetails = () => {
   const { data: client, isLoading: clientLoading } = useGetById(clientId);
   const updateClientMutation = useUpdate();
 
-  const { useGetAll: useGetUsers, useCreate: useCreateUser } = useClientUsers(clientId);
+  const { useGetAll: useGetUsers, useCreate: useCreateUser, useUpdate: useUpdateUser, useDelete: useDeleteUser } = useClientUsers(clientId);
   const { data: users = [], isLoading: usersLoading } = useGetUsers();
   const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
 
   // Edit user state
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
