@@ -12,7 +12,9 @@ dist
 dist-ssr
 *.local
 yarn.lock
-# package-lock.json
+package-lock.json
+bun.lock
+bun.lockb
 
 # Editor directories and files
 .vscode/*
