@@ -90,14 +90,24 @@ export const useTransactionStatuses = () => useSimpleCrud('transactionStatuses',
 export const useAccounts = (clientId: number) => {
   const queryClient = useQueryClient();
   return {
-    useGetAll: () => useQuery({ queryKey: ['accounts', clientId], queryFn: () => accountsApi.getAll(clientId), enabled: !!clientId }),
-    useGetById: (accountId: number) => useQuery({ queryKey: ['accounts', clientId, accountId], queryFn: () => accountsApi.getById(clientId, accountId), enabled: !!clientId && !!accountId }),
+    useGetAll: () => useQuery({
+      queryKey: ['accounts', clientId],
+      queryFn: () => accountsApi.getAll(clientId),
+      enabled: !!clientId,
+    }),
+    useGetById: (accountId: number) => useQuery({
+      queryKey: ['accounts', clientId, accountId],
+      queryFn: () => accountsApi.getById(clientId, accountId),
+      enabled: !!clientId && !!accountId,
+    }),
     useCreate: () => useMutation({
+      // Backend returns 204/true on create; we fire a refetch via invalidateQueries
       mutationFn: (data: any) => accountsApi.create(clientId, data),
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['accounts', clientId] }),
     }),
     useUpdate: () => useMutation({
-      mutationFn: ({ accountId, data }: { accountId: number; data: any }) => accountsApi.update(clientId, accountId, data),
+      mutationFn: ({ accountId, data }: { accountId: number; data: any }) =>
+        accountsApi.update(clientId, accountId, data),
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['accounts', clientId] }),
     }),
     useDelete: () => useMutation({
