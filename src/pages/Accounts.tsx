@@ -400,6 +400,86 @@ function AccountCurrenciesSection() {
   );
 }
 
+interface AccountFormData {
+  name: string;
+  institution: string;
+  account_type_id: string;
+  account_currency_id: string;
+}
+
+interface AccountFormFieldsProps {
+  formData: AccountFormData;
+  setFormData: React.Dispatch<React.SetStateAction<AccountFormData>>;
+  accountTypes: any[];
+  accountCurrencies: any[];
+  t: (key: string) => string;
+}
+
+const AccountFormFields = ({
+  formData,
+  setFormData,
+  accountTypes,
+  accountCurrencies,
+  t,
+}: AccountFormFieldsProps) => (
+    <div className="grid gap-4 py-2">
+      <div className="space-y-2">
+        <Label htmlFor="acc-name">{t("accounts.accountName")}</Label>
+        <Input
+          id="acc-name"
+          placeholder="ex: Conta Corrente Principal"
+          value={formData.name}
+          onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="acc-institution">{t("accounts.institution")}</Label>
+        <Input
+          id="acc-institution"
+          placeholder={t("accounts.enterInstitution")}
+          value={formData.institution}
+          onChange={(e) => setFormData((p) => ({ ...p, institution: e.target.value }))}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>{t("accounts.accountType")}</Label>
+        <Select
+          value={formData.account_type_id}
+          onValueChange={(v) => setFormData((p) => ({ ...p, account_type_id: v }))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={t("accounts.selectAccountType")} />
+          </SelectTrigger>
+          <SelectContent>
+            {(accountTypes as any[]).map((type) => (
+              <SelectItem key={type.id} value={String(type.id)}>
+                {type.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>{t("accounts.currency")}</Label>
+        <Select
+          value={formData.account_currency_id}
+          onValueChange={(v) => setFormData((p) => ({ ...p, account_currency_id: v }))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={t("accounts.selectCurrency")} />
+          </SelectTrigger>
+          <SelectContent>
+            {(accountCurrencies as any[]).map((cur) => (
+              <SelectItem key={cur.id} value={String(cur.id)}>
+                {cur.code} — {cur.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
 // ── Main Accounts page ───────────────────────────────────────────────────────
 const Accounts = ({ userRole }: AccountsProps) => {
   const { t } = useTranslation();
@@ -523,64 +603,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
     (accountCurrencies as any[]).find((cur) => cur.id === id)?.code || "—";
 
   // ── Account form fields (shared between Add and Edit) ─────────────────────
-  const AccountFormFields = () => (
-    <div className="grid gap-4 py-2">
-      <div className="space-y-2">
-        <Label htmlFor="acc-name">{t("accounts.accountName")}</Label>
-        <Input
-          id="acc-name"
-          placeholder="ex: Conta Corrente Principal"
-          value={formData.name}
-          onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="acc-institution">{t("accounts.institution")}</Label>
-        <Input
-          id="acc-institution"
-          placeholder={t("accounts.enterInstitution")}
-          value={formData.institution}
-          onChange={(e) => setFormData((p) => ({ ...p, institution: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>{t("accounts.accountType")}</Label>
-        <Select
-          value={formData.account_type_id}
-          onValueChange={(v) => setFormData((p) => ({ ...p, account_type_id: v }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={t("accounts.selectAccountType")} />
-          </SelectTrigger>
-          <SelectContent>
-            {(accountTypes as any[]).map((type) => (
-              <SelectItem key={type.id} value={String(type.id)}>
-                {type.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>{t("accounts.currency")}</Label>
-        <Select
-          value={formData.account_currency_id}
-          onValueChange={(v) => setFormData((p) => ({ ...p, account_currency_id: v }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={t("accounts.selectCurrency")} />
-          </SelectTrigger>
-          <SelectContent>
-            {(accountCurrencies as any[]).map((cur) => (
-              <SelectItem key={cur.id} value={String(cur.id)}>
-                {cur.code} — {cur.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
+  
 
   // ── No client selected (accountant view) ─────────────────────────────────
   if (userRole === "accountant" && !selectedClient) {
@@ -601,6 +624,14 @@ const Accounts = ({ userRole }: AccountsProps) => {
       </DashboardLayout>
     );
   }
+
+  const sharedFormProps = {
+    formData,
+    setFormData,
+    accountTypes: accountTypes as any[],
+    accountCurrencies: accountCurrencies as any[],
+    t,
+  };
 
   // ── Main render ───────────────────────────────────────────────────────────
   return (
@@ -748,7 +779,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
           <DialogHeader>
             <DialogTitle>{t("accounts.addNewAccount")}</DialogTitle>
           </DialogHeader>
-          <AccountFormFields />
+          <AccountFormFields {...sharedFormProps} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddOpen(false)}>
               {t("common.cancel")}
@@ -766,7 +797,7 @@ const Accounts = ({ userRole }: AccountsProps) => {
           <DialogHeader>
             <DialogTitle>{t("common.edit")} — {editingAccount?.name}</DialogTitle>
           </DialogHeader>
-          <AccountFormFields />
+          <AccountFormFields {...sharedFormProps} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
               {t("common.cancel")}
