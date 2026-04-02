@@ -75,41 +75,56 @@ export const accountBalanceApi = {
   delete: (accountId: number, balanceId: number) => request<void>(`/account-balance/${accountId}/${balanceId}`, { method: 'DELETE' }),
 };
 
-// Categories
+// Categories (scoped to client via query param)
 export const categoriesApi = {
-  getAll: () => request<any[]>('/category/'),
+  getAll: (clientId?: number) => {
+    const qs = clientId ? `?client_id=${clientId}` : '';
+    return request<any[]>(`/category/${qs}`);
+  },
   create: (data: any) => request<any>('/category/', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => request<any>(`/category/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => request<void>(`/category/${id}`, { method: 'DELETE' }),
 };
 
-// Partners
+// Partners (scoped to client via query param)
 export const partnersApi = {
-  getAll: () => request<any[]>('/partner/'),
+  getAll: (clientId?: number) => {
+    const qs = clientId ? `?client_id=${clientId}` : '';
+    return request<any[]>(`/partner/${qs}`);
+  },
   create: (data: any) => request<any>('/partner/', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => request<any>(`/partner/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => request<void>(`/partner/${id}`, { method: 'DELETE' }),
 };
 
-// Cost Centers
+// Cost Centers (scoped to client via query param)
 export const costCentersApi = {
-  getAll: () => request<any[]>('/cost-center/'),
+  getAll: (clientId?: number) => {
+    const qs = clientId ? `?client_id=${clientId}` : '';
+    return request<any[]>(`/cost-center/${qs}`);
+  },
   create: (data: any) => request<any>('/cost-center/', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => request<any>(`/cost-center/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => request<void>(`/cost-center/${id}`, { method: 'DELETE' }),
 };
 
-// Invoices
+// Invoices (scoped to client via query param)
 export const invoicesApi = {
-  getAll: () => request<any[]>('/invoice/'),
+  getAll: (clientId?: number) => {
+    const qs = clientId ? `?client_id=${clientId}` : '';
+    return request<any[]>(`/invoice/${qs}`);
+  },
   create: (data: any) => request<any>('/invoice/', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => request<any>(`/invoice/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => request<void>(`/invoice/${id}`, { method: 'DELETE' }),
 };
 
-// Transaction Status
+// Transaction Status (scoped to client via query param)
 export const transactionStatusApi = {
-  getAll: () => request<any[]>('/transaction-status/'),
+  getAll: (clientId?: number) => {
+    const qs = clientId ? `?client_id=${clientId}` : '';
+    return request<any[]>(`/transaction-status/${qs}`);
+  },
   create: (data: any) => request<any>('/transaction-status/', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => request<any>(`/transaction-status/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => request<void>(`/transaction-status/${id}`, { method: 'DELETE' }),

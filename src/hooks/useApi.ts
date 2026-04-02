@@ -55,36 +55,41 @@ export const useClientUsers = (clientId: number) => {
   };
 };
 
-// --- Simple CRUD hook factory for flat resources (no client scope) ---
-function useSimpleCrud(key: string, api: {
-  getAll: () => Promise<any[]>;
+// --- Client-scoped CRUD hook factory ---
+// For resources that have a client_id and should be filtered by it.
+function useClientScopedCrud(key: string, api: {
+  getAll: (clientId?: number) => Promise<any[]>;
   create: (data: any) => Promise<any>;
   update: (id: number, data: any) => Promise<any>;
   delete: (id: number) => Promise<void>;
-}) {
+}, clientId?: number) {
   const queryClient = useQueryClient();
   return {
-    useGetAll: () => useQuery({ queryKey: [key], queryFn: api.getAll }),
+    // clientId is part of the query key so the query re-runs when it changes
+    useGetAll: () => useQuery({
+      queryKey: [key, clientId],
+      queryFn: () => api.getAll(clientId),
+    }),
     useCreate: () => useMutation({
       mutationFn: (data: any) => api.create(data),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key] }),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key, clientId] }),
     }),
     useUpdate: () => useMutation({
       mutationFn: ({ id, data }: { id: number; data: any }) => api.update(id, data),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key] }),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key, clientId] }),
     }),
     useDelete: () => useMutation({
       mutationFn: (id: number) => api.delete(id),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key] }),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: [key, clientId] }),
     }),
   };
 }
 
-export const useCategories = () => useSimpleCrud('categories', categoriesApi);
-export const usePartners = () => useSimpleCrud('partners', partnersApi);
-export const useCostCenters = () => useSimpleCrud('costCenters', costCentersApi);
-export const useInvoices = () => useSimpleCrud('invoices', invoicesApi);
-export const useTransactionStatuses = () => useSimpleCrud('transactionStatuses', transactionStatusApi);
+export const useCategories = (clientId?: number) => useClientScopedCrud('categories', categoriesApi, clientId);
+export const usePartners = (clientId?: number) => useClientScopedCrud('partners', partnersApi, clientId);
+export const useCostCenters = (clientId?: number) => useClientScopedCrud('costCenters', costCentersApi, clientId);
+export const useInvoices = (clientId?: number) => useClientScopedCrud('invoices', invoicesApi, clientId);
+export const useTransactionStatuses = (clientId?: number) => useClientScopedCrud('transactionStatuses', transactionStatusApi, clientId);
 
 // --- Financial Accounts (scoped to client) ---
 export const useAccounts = (clientId: number) => {
@@ -101,7 +106,6 @@ export const useAccounts = (clientId: number) => {
       enabled: !!clientId && !!accountId,
     }),
     useCreate: () => useMutation({
-      // Backend returns 204/true on create; we fire a refetch via invalidateQueries
       mutationFn: (data: any) => accountsApi.create(clientId, data),
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['accounts', clientId] }),
     }),

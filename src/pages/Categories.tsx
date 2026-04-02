@@ -23,12 +23,15 @@ interface CategoriesProps {
 export default function Categories({ userRole }: CategoriesProps) {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
-  const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = useCategories();
+  const clientId = selectedClient?.id ?? undefined;
+
+  // Pass clientId to the hook — query reruns automatically when client changes
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCategories(clientId);
   const { data: categories = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -122,7 +125,10 @@ export default function Categories({ userRole }: CategoriesProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('categories.title')}</h1>
-            <p className="text-muted-foreground">{t('categories.subtitle')}</p>
+            <p className="text-muted-foreground">
+              {t('categories.subtitle')}
+              {selectedClient && ` — ${selectedClient.name}`}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
@@ -136,9 +142,9 @@ export default function Categories({ userRole }: CategoriesProps) {
                   <UploadCSV onUpload={handleUpload} onCancel={() => setUploadDialogOpen(false)} />
                 </DialogContent>
               </Dialog>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingCategory(null); }}>
                 <DialogTrigger asChild>
-                  <Button><Plus className="h-4 w-4 mr-2" />{t('categories.add')}</Button>
+                  <Button onClick={() => setEditingCategory(null)}><Plus className="h-4 w-4 mr-2" />{t('categories.add')}</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader><DialogTitle>{editingCategory ? t('categories.edit') : t('categories.add')}</DialogTitle></DialogHeader>
@@ -148,10 +154,24 @@ export default function Categories({ userRole }: CategoriesProps) {
             </div>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">{stats.map((stat) => (<StatsCard key={stat.title} {...stat} />))}</div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {stats.map((stat) => (<StatsCard key={stat.title} {...stat} />))}
+        </div>
+
         <div className="space-y-4">
-          <Input placeholder={t('common.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-sm" />
-          <DataTable columns={columns} data={filteredCategories} searchColumn="name" searchPlaceholder={t('common.search')} />
+          <Input
+            placeholder={t('common.search')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+          <DataTable
+            columns={columns}
+            data={filteredCategories}
+            searchColumn="name"
+            searchPlaceholder={t('common.search')}
+          />
         </div>
       </div>
     </DashboardLayout>
