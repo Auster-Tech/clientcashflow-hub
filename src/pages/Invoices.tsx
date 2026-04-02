@@ -11,7 +11,7 @@ import { useClient } from '@/contexts/ClientContext';
 import { UserRole, Invoice, Status } from '@/types';
 import { useInvoices } from '@/hooks/useApi';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Plus, FileText, DollarSign, Clock, Upload } from 'lucide-react';
+import { MoreHorizontal, Plus, FileText, DollarSign, Upload } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -27,8 +27,9 @@ interface InvoicesProps {
 const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
-  const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices();
+  const clientId = selectedClient?.id ?? undefined;
+
+  const { useGetAll, useCreate, useUpdate, useDelete } = useInvoices(clientId);
   const { data: invoices = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
@@ -67,11 +68,19 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
     const payload = { ...invoiceData, client_id: clientId };
     if (editingInvoice) {
       updateMutation.mutate({ id: editingInvoice.id, data: payload }, {
-        onSuccess: () => { toast({ title: t('toast.invoiceUpdated') }); setIsFormOpen(false); setEditingInvoice(null); },
+        onSuccess: () => {
+          toast({ title: t('toast.invoiceUpdated') });
+          setIsFormOpen(false);
+          setEditingInvoice(null);
+        },
       });
     } else {
       createMutation.mutate(payload, {
-        onSuccess: () => { toast({ title: t('toast.invoiceCreated') }); setIsFormOpen(false); setEditingInvoice(null); },
+        onSuccess: () => {
+          toast({ title: t('toast.invoiceCreated') });
+          setIsFormOpen(false);
+          setEditingInvoice(null);
+        },
       });
     }
   };
@@ -115,10 +124,16 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
       id: 'actions', header: t('common.actions'),
       cell: ({ row }) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button>
+          </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => { setEditingInvoice(row.original); setIsFormOpen(true); }}>{t('common.edit')}</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleDeleteInvoice(row.original.id)} className="text-red-600">{t('common.delete')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setEditingInvoice(row.original); setIsFormOpen(true); }}>
+              {t('common.edit')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDeleteInvoice(row.original.id)} className="text-red-600">
+              {t('common.delete')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -133,27 +148,40 @@ const Invoices = ({ userRole = 'accountant' }: InvoicesProps) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('invoices.title')}</h1>
-            <p className="text-muted-foreground">{t('invoices.manageClientInvoices')}{selectedClient && ` for ${selectedClient.name}`}</p>
+            <p className="text-muted-foreground">
+              {t('invoices.manageClientInvoices')}
+              {selectedClient && ` — ${selectedClient.name}`}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
             <div className="flex gap-2">
-              <Button onClick={() => setIsUploadOpen(true)} variant="outline" className="gap-2"><Upload className="h-4 w-4" />{t('common.upload')}</Button>
-              <Button onClick={() => { setEditingInvoice(null); setIsFormOpen(true); }} className="gap-2"><Plus className="h-4 w-4" />{t('invoices.add')}</Button>
+              <Button onClick={() => setIsUploadOpen(true)} variant="outline" className="gap-2">
+                <Upload className="h-4 w-4" />{t('common.upload')}
+              </Button>
+              <Button onClick={() => { setEditingInvoice(null); setIsFormOpen(true); }} className="gap-2">
+                <Plus className="h-4 w-4" />{t('invoices.add')}
+              </Button>
             </div>
           </div>
         </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           <StatsCard title={t('invoices.total')} value={invoices.length} icon={FileText} description={t('invoices.allInvoices')} />
           <StatsCard title={t('invoices.amount')} value={`$${totalAmount.toLocaleString()}`} icon={DollarSign} description={t('invoices.totalInvoiceValue')} />
         </div>
+
         <DataTable columns={columns} data={invoices} searchColumn="invoice_number" searchPlaceholder={t('invoices.searchInvoices')} />
+
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-2xl">
-            <DialogHeader><DialogTitle>{editingInvoice ? t('invoices.editInvoice') : t('invoices.addNewInvoice')}</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>{editingInvoice ? t('invoices.editInvoice') : t('invoices.addNewInvoice')}</DialogTitle>
+            </DialogHeader>
             <InvoiceForm invoice={editingInvoice} onSubmit={handleFormSubmit} onCancel={() => setIsFormOpen(false)} />
           </DialogContent>
         </Dialog>
+
         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader><DialogTitle>{t('invoices.uploadInvoicesCSV')}</DialogTitle></DialogHeader>

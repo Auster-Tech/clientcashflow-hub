@@ -26,8 +26,9 @@ interface PartnersProps {
 const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
   const { selectedClient } = useClient();
   const { t } = useTranslation();
-  const clientId = selectedClient?.id ?? 0;
-  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners();
+  const clientId = selectedClient?.id ?? undefined;
+
+  const { useGetAll, useCreate, useUpdate, useDelete } = usePartners(clientId);
   const { data: partners = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
@@ -66,11 +67,19 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
     const payload = { ...partnerData, client_id: clientId };
     if (editingPartner) {
       updateMutation.mutate({ id: editingPartner.id, data: payload }, {
-        onSuccess: () => { toast({ title: t('partners.update'), description: t('common.update') }); setIsFormOpen(false); setEditingPartner(null); },
+        onSuccess: () => {
+          toast({ title: t('partners.update'), description: t('common.update') });
+          setIsFormOpen(false);
+          setEditingPartner(null);
+        },
       });
     } else {
       createMutation.mutate(payload, {
-        onSuccess: () => { toast({ title: t('partners.create'), description: t('common.create') }); setIsFormOpen(false); setEditingPartner(null); },
+        onSuccess: () => {
+          toast({ title: t('partners.create'), description: t('common.create') });
+          setIsFormOpen(false);
+          setEditingPartner(null);
+        },
       });
     }
   };
@@ -95,10 +104,16 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
       id: 'actions', header: t('common.actions'),
       cell: ({ row }) => (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button>
+          </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => { setEditingPartner(row.original); setIsFormOpen(true); }}>{t('common.edit')}</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleDeletePartner(row.original.id)} className="text-red-600">{t('common.delete')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setEditingPartner(row.original); setIsFormOpen(true); }}>
+              {t('common.edit')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDeletePartner(row.original.id)} className="text-red-600">
+              {t('common.delete')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -111,26 +126,43 @@ const Partners = ({ userRole = 'accountant' }: PartnersProps) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('partners.title')}</h1>
-            <p className="text-muted-foreground">{t('partners.subtitle')}{selectedClient && ` ${t('common.client')}: ${selectedClient.name}`}</p>
+            <p className="text-muted-foreground">
+              {t('partners.subtitle')}
+              {selectedClient && ` — ${selectedClient.name}`}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
             <div className="flex gap-2">
-              <Button onClick={() => setIsUploadOpen(true)} variant="outline" className="gap-2"><Upload className="h-4 w-4" />{t('common.upload')}</Button>
-              <Button onClick={() => { setEditingPartner(null); setIsFormOpen(true); }} className="gap-2"><Plus className="h-4 w-4" />{t('partners.add')}</Button>
+              <Button onClick={() => setIsUploadOpen(true)} variant="outline" className="gap-2">
+                <Upload className="h-4 w-4" />{t('common.upload')}
+              </Button>
+              <Button onClick={() => { setEditingPartner(null); setIsFormOpen(true); }} className="gap-2">
+                <Plus className="h-4 w-4" />{t('partners.add')}
+              </Button>
             </div>
           </div>
         </div>
+
         <div className="grid gap-4 md:grid-cols-2">
           <StatsCard title={t('partners.total')} value={partners.length} icon={Tag} description={t('partners.total')} />
         </div>
+
         <DataTable columns={columns} data={partners} searchColumn="name" searchPlaceholder={t('common.search')} />
+
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader><DialogTitle>{editingPartner ? t('partners.edit') : t('partners.add')}</DialogTitle></DialogHeader>
-            <PartnerForm partner={editingPartner} onSubmit={handleFormSubmit} onCancel={() => setIsFormOpen(false)} />
+            <DialogHeader>
+              <DialogTitle>{editingPartner ? t('partners.edit') : t('partners.add')}</DialogTitle>
+            </DialogHeader>
+            <PartnerForm
+              partner={editingPartner}
+              onSubmit={handleFormSubmit}
+              onCancel={() => setIsFormOpen(false)}
+            />
           </DialogContent>
         </Dialog>
+
         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader><DialogTitle>{t('common.upload')}</DialogTitle></DialogHeader>
