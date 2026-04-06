@@ -4,19 +4,30 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DataTable } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { UserRole } from "@/types";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { UserRole, Status } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { UploadCSV } from "@/components/ui/UploadCSV";
 import { ClientSelector } from "@/components/ui/ClientSelector";
-import { Plus, Search, MoreHorizontal, FileText, Trash, Upload } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, Trash, Upload, Tag, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { useTransactions, useCategories, useCostCenters, usePartners, useAccounts, useInvoices } from "@/hooks/useApi";
+import {
+  useTransactions, useCategories, useCostCenters,
+  usePartners, useAccounts, useInvoices, useTransactionStatuses,
+} from "@/hooks/useApi";
 import { useClient } from "@/contexts/ClientContext";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,6 +48,7 @@ interface TransactionFormState {
   description: string;
   categoryId: string;
   accountId: string;
+  transactionStatusId: string;
   costCenterId: string;
   partnerId: string;
   invoiceId: string;
@@ -49,18 +61,20 @@ const emptyForm: TransactionFormState = {
   description: "",
   categoryId: "",
   accountId: "",
+  transactionStatusId: "",
   costCenterId: "",
   partnerId: "",
   invoiceId: "",
   notes: "",
 };
 
-// ── Inline transaction form (no react-hook-form, no external component) ──────
-interface TransactionFormProps {
+// ── Transaction form fields — defined OUTSIDE to avoid remount on keystroke ──
+interface TransactionFormFieldsProps {
   form: TransactionFormState;
   setForm: React.Dispatch<React.SetStateAction<TransactionFormState>>;
   categories: any[];
   accounts: any[];
+  transactionStatuses: any[];
   costCenters: any[];
   partners: any[];
   invoices: any[];
@@ -68,8 +82,8 @@ interface TransactionFormProps {
 }
 
 const TransactionFormFields = ({
-  form, setForm, categories, accounts, costCenters, partners, invoices, t,
-}: TransactionFormProps) => (
+  form, setForm, categories, accounts, transactionStatuses, costCenters, partners, invoices, t,
+}: TransactionFormFieldsProps) => (
   <div className="space-y-4">
     {/* Date */}
     <div className="space-y-2">
@@ -96,7 +110,7 @@ const TransactionFormFields = ({
       </Popover>
     </div>
 
-    {/* Amount + Description side by side */}
+    {/* Amount + Description */}
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="tx-amount">{t('common.amount')}</Label>
@@ -143,6 +157,21 @@ const TransactionFormFields = ({
         <SelectContent>
           {categories.map((c: any) => (
             <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+
+    {/* Transaction Status (required) */}
+    <div className="space-y-2">
+      <Label>Status da Transação</Label>
+      <Select value={form.transactionStatusId} onValueChange={(v) => setForm((p) => ({ ...p, transactionStatusId: v }))}>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione um status" />
+        </SelectTrigger>
+        <SelectContent>
+          {transactionStatuses.map((s: any) => (
+            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -211,15 +240,194 @@ const TransactionFormFields = ({
   </div>
 );
 
+// ── Transaction Status CRUD section — defined OUTSIDE main component ──────────
+interface TransactionStatusSectionProps {
+  clientId: number | undefined;
+  t: (k: string) => string;
+  toast: any;
+}
+
+const emptyStatusForm = { name: "", description: "" };
+
+const TransactionStatusSection = ({ clientId, t, toast }: TransactionStatusSectionProps) => {
+  const { useGetAll, useCreate, useUpdate, useDelete } = useTransactionStatuses(clientId);
+  const { data: statuses = [], isLoading } = useGetAll();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
+  const deleteMutation = useDelete();
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [deleting, setDeleting] = useState<any>(null);
+  const [form, setForm] = useState(emptyStatusForm);
+
+  const openAdd = () => { setEditing(null); setForm(emptyStatusForm); setIsFormOpen(true); };
+  const openEdit = (item: any) => {
+    setEditing(item);
+    setForm({ name: item.name || "", description: item.description || "" });
+    setIsFormOpen(true);
+  };
+  const openDelete = (item: any) => { setDeleting(item); setIsDeleteOpen(true); };
+
+  const handleSubmit = () => {
+    if (!form.name.trim()) return;
+    const payload = { name: form.name, description: form.description, status: Status.ACTIVE, client_id: clientId };
+    if (editing) {
+      updateMutation.mutate({ id: editing.id, data: payload }, {
+        onSuccess: () => { toast({ title: "Status atualizado com sucesso." }); setIsFormOpen(false); setEditing(null); },
+        onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
+      });
+    } else {
+      createMutation.mutate(payload, {
+        onSuccess: () => { toast({ title: "Status criado com sucesso." }); setIsFormOpen(false); setForm(emptyStatusForm); },
+        onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
+      });
+    }
+  };
+
+  const handleDelete = () => {
+    deleteMutation.mutate(deleting?.id, {
+      onSuccess: () => { toast({ title: "Status removido com sucesso." }); setIsDeleteOpen(false); setDeleting(null); },
+      onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
+    });
+  };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <Tag className="h-5 w-5 text-primary" />
+            Status de Transação
+          </CardTitle>
+          <CardDescription>Gerencie os status disponíveis para as transações</CardDescription>
+        </div>
+        <Button className="gap-2" onClick={openAdd}>
+          <Plus className="h-4 w-4" />
+          Adicionar Status
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {isLoading && (
+          <p className="text-sm text-muted-foreground py-4 text-center">Carregando…</p>
+        )}
+        {!isLoading && (statuses as any[]).length === 0 && (
+          <div className="flex flex-col items-center justify-center py-8 gap-3">
+            <Tag className="h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">Nenhum status cadastrado ainda.</p>
+            <Button variant="outline" size="sm" onClick={openAdd} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Adicionar Status
+            </Button>
+          </div>
+        )}
+        {(statuses as any[]).map((item: any, idx: number) => (
+          <React.Fragment key={item.id}>
+            {idx > 0 && <Separator />}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-primary/10 p-2">
+                  <Tag className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">{item.name}</p>
+                  {item.description && (
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-green-50 text-green-700 text-xs">Ativo</Badge>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}>
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => openDelete(item)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
+      </CardContent>
+
+      {/* Form dialog */}
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Editar Status" : "Novo Status"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="status-name">Nome</Label>
+              <Input
+                id="status-name"
+                placeholder="ex: Pendente"
+                value={form.name}
+                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status-desc">Descrição <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+              <Input
+                id="status-desc"
+                placeholder="Breve descrição do status"
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={isPending || !form.name.trim()}>
+              {isPending ? "Salvando…" : editing ? "Salvar" : "Criar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover status</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <span className="font-semibold">{deleting?.name}</span>?
+              Esta ação não poderá ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Removendo…" : "Remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
+  );
+};
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 const Transactions = ({ userRole }: TransactionsProps) => {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isUploadCSVOpen, setIsUploadCSVOpen] = useState(false);
   const [form, setForm] = useState<TransactionFormState>(emptyForm);
-  const { toast } = useToast();
 
   const clientId = selectedClient?.id ?? undefined;
 
@@ -228,7 +436,6 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   const createTransactionMutation = useCreateTransaction();
   const deleteTransactionMutation = useDeleteTransaction();
 
-  // All dropdown data scoped to the selected client
   const { useGetAll: useGetCategories } = useCategories(clientId);
   const { data: categories = [] } = useGetCategories();
 
@@ -241,7 +448,9 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   const { useGetAll: useGetInvoices } = useInvoices(clientId);
   const { data: invoices = [] } = useGetInvoices();
 
-  // Accounts are scoped to client via path param
+  const { useGetAll: useGetStatuses } = useTransactionStatuses(clientId);
+  const { data: transactionStatuses = [] } = useGetStatuses();
+
   const { useGetAll: useGetAccounts } = useAccounts(clientId ?? 0);
   const { data: accounts = [] } = useGetAccounts();
 
@@ -252,7 +461,8 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     Number(form.amount) > 0 &&
     form.description.trim() !== "" &&
     form.categoryId !== "" &&
-    form.accountId !== "";
+    form.accountId !== "" &&
+    form.transactionStatusId !== "";
 
   const handleAddTransaction = () => {
     if (!isFormValid()) return;
@@ -263,7 +473,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       amount: Number(form.amount),
       categoryId: Number(form.categoryId),
       financialAccountId: acctId,
-      transactionStatusId: 1, // default status
+      transactionStatusId: Number(form.transactionStatusId),
       ...(form.costCenterId && form.costCenterId !== "none" ? { costCenterId: Number(form.costCenterId) } : {}),
       ...(form.partnerId && form.partnerId !== "none" ? { partnerId: Number(form.partnerId) } : {}),
       ...(form.invoiceId && form.invoiceId !== "none" ? { invoiceId: Number(form.invoiceId) } : {}),
@@ -283,7 +493,8 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   };
 
   const columns = [
-    { accessorKey: "transaction_date", header: t('common.date'),
+    {
+      accessorKey: "transaction_date", header: t('common.date'),
       cell: ({ row }: any) => {
         try { return format(new Date(row.original.transaction_date || row.original.date), "MMM dd, yyyy"); }
         catch { return row.original.transaction_date || row.original.date || "—"; }
@@ -361,6 +572,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('transactions.title')}</h1>
@@ -382,28 +594,44 @@ const Transactions = ({ userRole }: TransactionsProps) => {
           </div>
         </div>
 
-        <div className="relative max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder={t('common.search') + "..."}
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        {/* Tabs */}
+        <Tabs defaultValue="transactions" className="space-y-6">
+          <TabsList className="bg-muted/50 p-1">
+            <TabsTrigger value="transactions">{t('transactions.title')}</TabsTrigger>
+            <TabsTrigger value="statuses">Status de Transação</TabsTrigger>
+          </TabsList>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>{t('transactions.transactionHistory')}</CardTitle>
-            <CardDescription>
-              {t('transactions.showingTransactions').replace('{count}', filteredTransactions.length.toString())}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DataTable columns={columns} data={filteredTransactions} />
-          </CardContent>
-        </Card>
+          {/* ── Tab: Transactions ─────────────────────────────────────────── */}
+          <TabsContent value="transactions" className="space-y-4">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder={t('common.search') + "..."}
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle>{t('transactions.transactionHistory')}</CardTitle>
+                <CardDescription>
+                  {t('transactions.showingTransactions').replace('{count}', filteredTransactions.length.toString())}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DataTable columns={columns} data={filteredTransactions} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ── Tab: Transaction Statuses ─────────────────────────────────── */}
+          <TabsContent value="statuses" className="space-y-6">
+            <TransactionStatusSection clientId={clientId} t={t} toast={toast} />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Add Transaction Dialog */}
@@ -418,6 +646,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
             setForm={setForm}
             categories={categories}
             accounts={accounts}
+            transactionStatuses={transactionStatuses}
             costCenters={costCenters}
             partners={partners}
             invoices={invoices}
