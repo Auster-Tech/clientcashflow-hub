@@ -130,11 +130,13 @@ export const transactionStatusApi = {
   delete: (id: number) => request<void>(`/transaction-status/${id}`, { method: 'DELETE' }),
 };
 
-// Transactions (scoped to account)
+// Transactions
 export const transactionsApi = {
   getAll: () => request<any[]>('/transactions/'),
   getByAccount: (accountId: number) => request<any[]>(`/transactions/${accountId}`),
   getById: (accountId: number, transactionId: number) => request<any>(`/transactions/${accountId}/${transactionId}`),
+  // ← NEW: all transactions for a client (across all their accounts)
+  getByClient: (clientId: number) => request<any[]>(`/clients/${clientId}/transactions/`),
   create: (accountId: number, data: any) => request<any>(`/transactions/${accountId}`, { method: 'POST', body: JSON.stringify(data) }),
   update: (accountId: number, transactionId: number, data: any) => request<any>(`/transactions/${accountId}/${transactionId}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (accountId: number, transactionId: number) => request<void>(`/transactions/${accountId}/${transactionId}`, { method: 'DELETE' }),

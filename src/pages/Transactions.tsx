@@ -108,7 +108,7 @@ function DetailRow({
   );
 }
 
-// ── Transaction form fields (shared by Create and Edit) ───────────────────────
+// ── Transaction form fields ───────────────────────────────────────────────────
 interface TransactionFormFieldsProps {
   form: TransactionFormState;
   setForm: React.Dispatch<React.SetStateAction<TransactionFormState>>;
@@ -383,7 +383,16 @@ const TransactionStatusSection = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate(deleting?.id, { onSuccess: () => { toast({ title: "Status removido." }); setIsDeleteOpen(false); setDeleting(null); }, onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }) })} className="bg-destructive hover:bg-destructive/90" disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "Removendo…" : "Remover"}</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate(deleting?.id, {
+                onSuccess: () => { toast({ title: "Status removido." }); setIsDeleteOpen(false); setDeleting(null); },
+                onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
+              })}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Removendo…" : "Remover"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -399,43 +408,43 @@ const Transactions = ({ userRole }: TransactionsProps) => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // dialog open states
   const [isAddOpen,    setIsAddOpen]    = useState(false);
   const [isEditOpen,   setIsEditOpen]   = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-  // target transaction for each action
-  const [selectedTx,  setSelectedTx]  = useState<any>(null);
-  const [editingTx,   setEditingTx]   = useState<any>(null);
-  const [deletingTx,  setDeletingTx]  = useState<any>(null);
+  const [selectedTx, setSelectedTx] = useState<any>(null);
+  const [editingTx,  setEditingTx]  = useState<any>(null);
+  const [deletingTx, setDeletingTx] = useState<any>(null);
 
-  // separate form states so dialogs don't interfere
   const [addForm,  setAddForm]  = useState<TransactionFormState>(emptyForm);
   const [editForm, setEditForm] = useState<TransactionFormState>(emptyForm);
 
+  // clientId drives which endpoint is called
   const clientId = selectedClient?.id ?? undefined;
 
   // ── API hooks ─────────────────────────────────────────────────────────────
-  const { useGetAll: useGetTx, useCreate: useCreateTx, useUpdate: useUpdateTx, useDelete: useDeleteTx } = useTransactions();
-  const { data: transactions = [] } = useGetTx();
+  // Pass clientId → hook calls /clients/{clientId}/transactions/ when set,
+  // otherwise falls back to /transactions/ (all)
+  const { useGetAll: useGetTx, useCreate: useCreateTx, useUpdate: useUpdateTx, useDelete: useDeleteTx } = useTransactions(clientId);
+  const { data: transactions = [], isLoading: txLoading } = useGetTx();
   const createMutation = useCreateTx();
   const updateMutation = useUpdateTx();
   const deleteMutation = useDeleteTx();
 
-  const { useGetAll: useGetCats }      = useCategories(clientId);
-  const { data: categories = [] }      = useGetCats();
-  const { useGetAll: useGetCCs }       = useCostCenters(clientId);
-  const { data: costCenters = [] }     = useGetCCs();
-  const { useGetAll: useGetParts }     = usePartners(clientId);
-  const { data: partners = [] }        = useGetParts();
-  const { useGetAll: useGetInvs }      = useInvoices(clientId);
-  const { data: invoices = [] }        = useGetInvs();
-  const { useGetAll: useGetStatuses }  = useTransactionStatuses(clientId);
+  const { useGetAll: useGetCats }          = useCategories(clientId);
+  const { data: categories = [] }          = useGetCats();
+  const { useGetAll: useGetCCs }           = useCostCenters(clientId);
+  const { data: costCenters = [] }         = useGetCCs();
+  const { useGetAll: useGetParts }         = usePartners(clientId);
+  const { data: partners = [] }            = useGetParts();
+  const { useGetAll: useGetInvs }          = useInvoices(clientId);
+  const { data: invoices = [] }            = useGetInvs();
+  const { useGetAll: useGetStatuses }      = useTransactionStatuses(clientId);
   const { data: transactionStatuses = [] } = useGetStatuses();
-  const { useGetAll: useGetAccts }     = useAccounts(clientId ?? 0);
-  const { data: accounts = [] }        = useGetAccts();
+  const { useGetAll: useGetAccts }         = useAccounts(clientId ?? 0);
+  const { data: accounts = [] }            = useGetAccts();
 
   // ── Lookup helpers ────────────────────────────────────────────────────────
   const lookup = (list: any[], id: any, field = "name") =>
@@ -531,10 +540,9 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   const openEdit   = (tx: any) => { setEditingTx(tx);   setEditForm(txToForm(tx)); setIsEditOpen(true); };
   const openDelete = (tx: any) => { setDeletingTx(tx);  setIsDeleteOpen(true); };
 
-  // ── Shared form props ─────────────────────────────────────────────────────
   const sharedProps = { categories, accounts, transactionStatuses, costCenters, partners, invoices, t };
 
-  // ── Table columns — all transaction fields ────────────────────────────────
+  // ── Table columns ─────────────────────────────────────────────────────────
   const columns = [
     {
       accessorKey: "transaction_date",
@@ -599,9 +607,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       header: t("nav.costCenters"),
       cell: ({ row }: any) => {
         const name = getCostCenterName(row.original.cost_center_id);
-        return name
-          ? <span className="text-xs">{name}</span>
-          : <span className="text-muted-foreground text-xs">—</span>;
+        return name ? <span className="text-xs">{name}</span> : <span className="text-muted-foreground text-xs">—</span>;
       },
     },
     {
@@ -609,9 +615,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       header: t("nav.partners"),
       cell: ({ row }: any) => {
         const name = getPartnerName(row.original.partner_id);
-        return name
-          ? <span className="text-xs">{name}</span>
-          : <span className="text-muted-foreground text-xs">—</span>;
+        return name ? <span className="text-xs">{name}</span> : <span className="text-muted-foreground text-xs">—</span>;
       },
     },
     {
@@ -661,7 +665,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     (tx.description || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // ── No client guard ───────────────────────────────────────────────────────
+  // ── No client guard (accountant view only) ────────────────────────────────
   if (userRole === "accountant" && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
@@ -730,7 +734,9 @@ const Transactions = ({ userRole }: TransactionsProps) => {
               <CardHeader className="pb-2">
                 <CardTitle>{t("transactions.transactionHistory")}</CardTitle>
                 <CardDescription>
-                  {t("transactions.showingTransactions").replace("{count}", String(filteredTransactions.length))}
+                  {txLoading
+                    ? "Carregando…"
+                    : t("transactions.showingTransactions").replace("{count}", String(filteredTransactions.length))}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -758,7 +764,6 @@ const Transactions = ({ userRole }: TransactionsProps) => {
 
           {selectedTx && (
             <div className="space-y-1">
-              {/* Amount highlight */}
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 mb-1">
                 <span className="text-sm text-muted-foreground font-medium">Valor</span>
                 <span className={cn(
@@ -785,21 +790,11 @@ const Transactions = ({ userRole }: TransactionsProps) => {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
-              Fechar
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => { setIsDetailOpen(false); openEdit(selectedTx); }}
-            >
+            <Button variant="outline" onClick={() => setIsDetailOpen(false)}>Fechar</Button>
+            <Button variant="outline" className="gap-2" onClick={() => { setIsDetailOpen(false); openEdit(selectedTx); }}>
               <Edit className="h-4 w-4" />Editar
             </Button>
-            <Button
-              variant="destructive"
-              className="gap-2"
-              onClick={() => { setIsDetailOpen(false); openDelete(selectedTx); }}
-            >
+            <Button variant="destructive" className="gap-2" onClick={() => { setIsDetailOpen(false); openDelete(selectedTx); }}>
               <Trash2 className="h-4 w-4" />Excluir
             </Button>
           </DialogFooter>

@@ -56,7 +56,6 @@ export const useClientUsers = (clientId: number) => {
 };
 
 // --- Client-scoped CRUD hook factory ---
-// For resources that have a client_id and should be filtered by it.
 function useClientScopedCrud(key: string, api: {
   getAll: (clientId?: number) => Promise<any[]>;
   create: (data: any) => Promise<any>;
@@ -65,7 +64,6 @@ function useClientScopedCrud(key: string, api: {
 }, clientId?: number) {
   const queryClient = useQueryClient();
   return {
-    // clientId is part of the query key so the query re-runs when it changes
     useGetAll: () => useQuery({
       queryKey: [key, clientId],
       queryFn: () => api.getAll(clientId),
@@ -136,24 +134,39 @@ export const useAccountBalances = (accountId?: number) => {
   };
 };
 
-// --- Transactions (scoped to account) ---
-export const useTransactions = (accountId?: number) => {
+// --- Transactions ---
+// When clientId is provided the hook fetches from /clients/{clientId}/transactions/
+// (all accounts for that client). When accountId is provided it fetches by account.
+// When neither is provided it fetches all transactions.
+export const useTransactions = (clientId?: number, accountId?: number) => {
   const queryClient = useQueryClient();
+
+  const queryKey = clientId
+    ? ['transactions', 'client', clientId]
+    : accountId
+    ? ['transactions', 'account', accountId]
+    : ['transactions'];
+
+  const queryFn = () => {
+    if (clientId) return transactionsApi.getByClient(clientId);
+    if (accountId) return transactionsApi.getByAccount(accountId);
+    return transactionsApi.getAll();
+  };
+
   return {
-    useGetAll: () => useQuery({
-      queryKey: ['transactions', accountId],
-      queryFn: () => accountId ? transactionsApi.getByAccount(accountId) : transactionsApi.getAll(),
-    }),
+    useGetAll: () => useQuery({ queryKey, queryFn }),
     useCreate: () => useMutation({
       mutationFn: ({ acctId, data }: { acctId: number; data: any }) => transactionsApi.create(acctId, data),
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
     }),
     useUpdate: () => useMutation({
-      mutationFn: ({ acctId, transactionId, data }: { acctId: number; transactionId: number; data: any }) => transactionsApi.update(acctId, transactionId, data),
+      mutationFn: ({ acctId, transactionId, data }: { acctId: number; transactionId: number; data: any }) =>
+        transactionsApi.update(acctId, transactionId, data),
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
     }),
     useDelete: () => useMutation({
-      mutationFn: ({ acctId, transactionId }: { acctId: number; transactionId: number }) => transactionsApi.delete(acctId, transactionId),
+      mutationFn: ({ acctId, transactionId }: { acctId: number; transactionId: number }) =>
+        transactionsApi.delete(acctId, transactionId),
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
     }),
   };
