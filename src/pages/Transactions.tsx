@@ -84,10 +84,7 @@ const formatDate = (raw: any) => {
 
 // ── Detail row component ──────────────────────────────────────────────────────
 function DetailRow({
-  icon: Icon,
-  label,
-  value,
-  mono = false,
+  icon: Icon, label, value, mono = false,
 }: {
   icon: React.ElementType;
   label: string;
@@ -126,132 +123,67 @@ const TransactionFormFields = ({
   costCenters, partners, invoices, t,
 }: TransactionFormFieldsProps) => (
   <div className="space-y-4">
-    {/* Date */}
     <div className="space-y-2">
       <Label>{t("common.date")}</Label>
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn("w-full justify-start text-left font-normal", !form.date && "text-muted-foreground")}
-          >
+          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.date && "text-muted-foreground")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
             {form.date ? format(form.date, "dd/MM/yyyy") : <span>Selecione uma data</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <CalendarComponent
-            mode="single"
-            selected={form.date}
-            onSelect={(d) => setForm((p) => ({ ...p, date: d }))}
-            initialFocus
-            className="p-3 pointer-events-auto"
-          />
+          <CalendarComponent mode="single" selected={form.date} onSelect={(d) => setForm((p) => ({ ...p, date: d }))} initialFocus className="p-3 pointer-events-auto" />
         </PopoverContent>
       </Popover>
     </div>
-
-    {/* Amount + Description */}
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="tx-amount">{t("common.amount")}</Label>
-        <Input
-          id="tx-amount"
-          placeholder="0.00"
-          value={form.amount}
-          onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
-        />
+        <Input id="tx-amount" placeholder="0.00" value={form.amount} onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="tx-description">{t("common.description")}</Label>
-        <Input
-          id="tx-description"
-          placeholder="Descrição"
-          value={form.description}
-          onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-        />
+        <Input id="tx-description" placeholder="Descrição" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
       </div>
     </div>
-
-    {/* Account */}
     <div className="space-y-2">
       <Label>{t("transactions.account")}</Label>
       <Select value={form.accountId} onValueChange={(v) => setForm((p) => ({ ...p, accountId: v }))}>
         <SelectTrigger><SelectValue placeholder="Selecione uma conta" /></SelectTrigger>
-        <SelectContent>
-          {accounts.map((a: any) => (
-            <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
-          ))}
-        </SelectContent>
+        <SelectContent>{accounts.map((a: any) => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}</SelectContent>
       </Select>
     </div>
-
-    {/* Category */}
     <div className="space-y-2">
       <Label>{t("transactions.category")}</Label>
       <Select value={form.categoryId} onValueChange={(v) => setForm((p) => ({ ...p, categoryId: v }))}>
         <SelectTrigger><SelectValue placeholder="Selecione uma categoria" /></SelectTrigger>
-        <SelectContent>
-          {categories.map((c: any) => (
-            <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-          ))}
-        </SelectContent>
+        <SelectContent>{categories.map((c: any) => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}</SelectContent>
       </Select>
     </div>
-
-    {/* Transaction Status */}
     <div className="space-y-2">
       <Label>Status da Transação</Label>
       <Select value={form.transactionStatusId} onValueChange={(v) => setForm((p) => ({ ...p, transactionStatusId: v }))}>
         <SelectTrigger><SelectValue placeholder="Selecione um status" /></SelectTrigger>
-        <SelectContent>
-          {transactionStatuses.map((s: any) => (
-            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-          ))}
-        </SelectContent>
+        <SelectContent>{transactionStatuses.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}</SelectContent>
       </Select>
     </div>
-
-    {/* Cost Center */}
     <div className="space-y-2">
-      <Label>
-        {t("nav.costCenters")}{" "}
-        <span className="text-muted-foreground text-xs">({t("form.optional")})</span>
-      </Label>
+      <Label>{t("nav.costCenters")} <span className="text-muted-foreground text-xs">({t("form.optional")})</span></Label>
       <Select value={form.costCenterId} onValueChange={(v) => setForm((p) => ({ ...p, costCenterId: v }))}>
         <SelectTrigger><SelectValue placeholder="Selecione um centro de custo" /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none">Nenhum</SelectItem>
-          {costCenters.map((cc: any) => (
-            <SelectItem key={cc.id} value={String(cc.id)}>{cc.name}</SelectItem>
-          ))}
-        </SelectContent>
+        <SelectContent><SelectItem value="none">Nenhum</SelectItem>{costCenters.map((cc: any) => <SelectItem key={cc.id} value={String(cc.id)}>{cc.name}</SelectItem>)}</SelectContent>
       </Select>
     </div>
-
-    {/* Partner */}
     <div className="space-y-2">
-      <Label>
-        {t("nav.partners")}{" "}
-        <span className="text-muted-foreground text-xs">({t("form.optional")})</span>
-      </Label>
+      <Label>{t("nav.partners")} <span className="text-muted-foreground text-xs">({t("form.optional")})</span></Label>
       <Select value={form.partnerId} onValueChange={(v) => setForm((p) => ({ ...p, partnerId: v }))}>
         <SelectTrigger><SelectValue placeholder="Selecione um parceiro" /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none">Nenhum</SelectItem>
-          {partners.map((p: any) => (
-            <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-          ))}
-        </SelectContent>
+        <SelectContent><SelectItem value="none">Nenhum</SelectItem>{partners.map((p: any) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}</SelectContent>
       </Select>
     </div>
-
-    {/* Invoice */}
     <div className="space-y-2">
-      <Label>
-        {t("nav.invoices")}{" "}
-        <span className="text-muted-foreground text-xs">({t("form.optional")})</span>
-      </Label>
+      <Label>{t("nav.invoices")} <span className="text-muted-foreground text-xs">({t("form.optional")})</span></Label>
       <Select value={form.invoiceId} onValueChange={(v) => setForm((p) => ({ ...p, invoiceId: v }))}>
         <SelectTrigger><SelectValue placeholder="Selecione uma fatura" /></SelectTrigger>
         <SelectContent>
@@ -270,21 +202,12 @@ const TransactionFormFields = ({
 // ── Transaction Status CRUD section ──────────────────────────────────────────
 const emptyStatusForm = { name: "", description: "" };
 
-const TransactionStatusSection = ({
-  clientId,
-  t,
-  toast,
-}: {
-  clientId: number | undefined;
-  t: (k: string) => string;
-  toast: any;
-}) => {
+const TransactionStatusSection = ({ clientId, t, toast }: { clientId: number | undefined; t: (k: string) => string; toast: any; }) => {
   const { useGetAll, useCreate, useUpdate, useDelete } = useTransactionStatuses(clientId);
   const { data: statuses = [], isLoading } = useGetAll();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -317,10 +240,7 @@ const TransactionStatusSection = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-primary" />
-            Status de Transação
-          </CardTitle>
+          <CardTitle className="flex items-center gap-2"><Tag className="h-5 w-5 text-primary" />Status de Transação</CardTitle>
           <CardDescription>Gerencie os status disponíveis para as transações</CardDescription>
         </div>
         <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" />Adicionar Status</Button>
@@ -354,19 +274,12 @@ const TransactionStatusSection = ({
           </React.Fragment>
         ))}
       </CardContent>
-
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader><DialogTitle>{editing ? "Editar Status" : "Novo Status"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="s-name">Nome</Label>
-              <Input id="s-name" placeholder="ex: Pendente" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="s-desc">Descrição <span className="text-muted-foreground text-xs">(opcional)</span></Label>
-              <Input id="s-desc" placeholder="Breve descrição" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
-            </div>
+            <div className="space-y-2"><Label htmlFor="s-name">Nome</Label><Input id="s-name" placeholder="ex: Pendente" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} /></div>
+            <div className="space-y-2"><Label htmlFor="s-desc">Descrição <span className="text-muted-foreground text-xs">(opcional)</span></Label><Input id="s-desc" placeholder="Breve descrição" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
@@ -374,7 +287,6 @@ const TransactionStatusSection = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -383,16 +295,7 @@ const TransactionStatusSection = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteMutation.mutate(deleting?.id, {
-                onSuccess: () => { toast({ title: "Status removido." }); setIsDeleteOpen(false); setDeleting(null); },
-                onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
-              })}
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? "Removendo…" : "Remover"}
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => deleteMutation.mutate(deleting?.id, { onSuccess: () => { toast({ title: "Status removido." }); setIsDeleteOpen(false); setDeleting(null); }, onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }) })} className="bg-destructive hover:bg-destructive/90" disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "Removendo…" : "Remover"}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -407,28 +310,21 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState("");
-
   const [isAddOpen,    setIsAddOpen]    = useState(false);
   const [isEditOpen,   setIsEditOpen]   = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-
-  const [selectedTx, setSelectedTx] = useState<any>(null);
-  const [editingTx,  setEditingTx]  = useState<any>(null);
-  const [deletingTx, setDeletingTx] = useState<any>(null);
-
+  const [selectedTx,  setSelectedTx]  = useState<any>(null);
+  const [editingTx,   setEditingTx]   = useState<any>(null);
+  const [deletingTx,  setDeletingTx]  = useState<any>(null);
   const [addForm,  setAddForm]  = useState<TransactionFormState>(emptyForm);
   const [editForm, setEditForm] = useState<TransactionFormState>(emptyForm);
 
-  // clientId drives which endpoint is called
   const clientId = selectedClient?.id ?? undefined;
 
-  // ── API hooks ─────────────────────────────────────────────────────────────
-  // Pass clientId → hook calls /clients/{clientId}/transactions/ when set,
-  // otherwise falls back to /transactions/ (all)
-  const { useGetAll: useGetTx, useCreate: useCreateTx, useUpdate: useUpdateTx, useDelete: useDeleteTx } = useTransactions(clientId);
-  const { data: transactions = [], isLoading: txLoading } = useGetTx();
+  const { useGetAll: useGetTx, useCreate: useCreateTx, useUpdate: useUpdateTx, useDelete: useDeleteTx } = useTransactions();
+  const { data: transactions = [] } = useGetTx();
   const createMutation = useCreateTx();
   const updateMutation = useUpdateTx();
   const deleteMutation = useDeleteTx();
@@ -451,11 +347,29 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     id != null ? ((list as any[]).find((i) => i.id === Number(id))?.[field] ?? null) : null;
 
   const getCategoryName   = (id: any) => lookup(categories, id);
+
+  /** Returns "income" | "expense" | null based on the category list. */
+  const getCategoryType = (id: any): "income" | "expense" | null =>
+    id != null ? ((categories as any[]).find((c) => c.id === Number(id))?.type ?? null) : null;
+
   const getAccountName    = (id: any) => lookup(accounts, id);
   const getStatusName     = (id: any) => lookup(transactionStatuses, id);
   const getCostCenterName = (id: any) => lookup(costCenters, id);
   const getPartnerName    = (id: any) => lookup(partners, id);
   const getInvoiceNumber  = (id: any) => lookup(invoices, id, "invoice_number");
+
+  /**
+   * Returns the Tailwind colour class for the amount cell.
+   * - expense category → red
+   * - income  category → green
+   * - unknown / no category → neutral (no class)
+   */
+  const amountColorClass = (categoryId: any): string => {
+    const type = getCategoryType(categoryId);
+    if (type === "expense") return "text-red-600";
+    if (type === "income")  return "text-green-600";
+    return "text-foreground";
+  };
 
   // ── Form validation ───────────────────────────────────────────────────────
   const isFormValid = (form: TransactionFormState) =>
@@ -468,7 +382,6 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     form.accountId !== "" &&
     form.transactionStatusId !== "";
 
-  // ── Build API payload ─────────────────────────────────────────────────────
   const buildPayload = (form: TransactionFormState) => ({
     date: format(form.date!, "yyyy-MM-dd"),
     description: form.description,
@@ -482,7 +395,6 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     status: Status.ACTIVE,
   });
 
-  // ── Map existing transaction → form state ─────────────────────────────────
   const txToForm = (tx: any): TransactionFormState => ({
     date:                tx.transaction_date ? new Date(tx.transaction_date) : new Date(),
     amount:              String(tx.amount ?? ""),
@@ -495,43 +407,27 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     invoiceId:           tx.invoice_id    != null ? String(tx.invoice_id)      : "none",
   });
 
-  // ── Action handlers ───────────────────────────────────────────────────────
   const handleCreate = () => {
     if (!isFormValid(addForm)) return;
     createMutation.mutate({ acctId: Number(addForm.accountId), data: buildPayload(addForm) }, {
-      onSuccess: () => {
-        toast({ title: t("toast.transactionAdded"), description: t("toast.transactionAddedDesc") });
-        setIsAddOpen(false);
-        setAddForm(emptyForm);
-      },
+      onSuccess: () => { toast({ title: t("toast.transactionAdded"), description: t("toast.transactionAddedDesc") }); setIsAddOpen(false); setAddForm(emptyForm); },
       onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
     });
   };
 
   const handleUpdate = () => {
     if (!isFormValid(editForm) || !editingTx) return;
-    updateMutation.mutate(
-      { acctId: Number(editForm.accountId), transactionId: editingTx.id, data: buildPayload(editForm) },
-      {
-        onSuccess: () => {
-          toast({ title: "Transação atualizada com sucesso." });
-          setIsEditOpen(false);
-          setEditingTx(null);
-        },
-        onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
-      }
-    );
+    updateMutation.mutate({ acctId: Number(editForm.accountId), transactionId: editingTx.id, data: buildPayload(editForm) }, {
+      onSuccess: () => { toast({ title: "Transação atualizada com sucesso." }); setIsEditOpen(false); setEditingTx(null); },
+      onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
+    });
   };
 
   const handleDelete = () => {
     if (!deletingTx) return;
     const acctId = deletingTx.account_id ?? deletingTx.financialAccountId;
     deleteMutation.mutate({ acctId, transactionId: deletingTx.id }, {
-      onSuccess: () => {
-        toast({ title: t("toast.transactionDeleted"), description: t("toast.transactionDeletedDesc") });
-        setIsDeleteOpen(false);
-        setDeletingTx(null);
-      },
+      onSuccess: () => { toast({ title: t("toast.transactionDeleted"), description: t("toast.transactionDeletedDesc") }); setIsDeleteOpen(false); setDeletingTx(null); },
       onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
     });
   };
@@ -547,9 +443,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     {
       accessorKey: "transaction_date",
       header: t("common.date"),
-      cell: ({ row }: any) => (
-        <span className="whitespace-nowrap text-sm">{formatDate(row.original.transaction_date)}</span>
-      ),
+      cell: ({ row }: any) => <span className="whitespace-nowrap text-sm">{formatDate(row.original.transaction_date)}</span>,
     },
     {
       accessorKey: "description",
@@ -563,23 +457,19 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     {
       accessorKey: "amount",
       header: t("common.amount"),
-      cell: ({ row }: any) => {
-        const n = parseFloat(row.original.amount);
-        return (
-          <span className={cn("font-medium text-sm whitespace-nowrap", n < 0 ? "text-red-600" : "text-green-600")}>
-            {n < 0 ? "− " : ""}{formatCurrency(Math.abs(n))}
-          </span>
-        );
-      },
+      cell: ({ row }: any) => (
+        // Colour is driven exclusively by category type: red = expense, green = income
+        <span className={cn("font-medium text-sm whitespace-nowrap", amountColorClass(row.original.category_id))}>
+          {formatCurrency(row.original.amount)}
+        </span>
+      ),
     },
     {
       accessorKey: "account_id",
       header: t("transactions.account"),
       cell: ({ row }: any) => {
         const name = getAccountName(row.original.account_id);
-        return name
-          ? <Badge variant="outline" className="text-xs font-normal">{name}</Badge>
-          : <span className="text-muted-foreground text-xs">—</span>;
+        return name ? <Badge variant="outline" className="text-xs font-normal">{name}</Badge> : <span className="text-muted-foreground text-xs">—</span>;
       },
     },
     {
@@ -587,9 +477,20 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       header: t("transactions.category"),
       cell: ({ row }: any) => {
         const name = getCategoryName(row.original.category_id);
-        return name
-          ? <Badge variant="outline" className="text-xs font-normal">{name}</Badge>
-          : <span className="text-muted-foreground text-xs">—</span>;
+        const type = getCategoryType(row.original.category_id);
+        if (!name) return <span className="text-muted-foreground text-xs">—</span>;
+        return (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-xs font-normal",
+              type === "expense" && "border-red-200 bg-red-50 text-red-700",
+              type === "income"  && "border-green-200 bg-green-50 text-green-700",
+            )}
+          >
+            {name}
+          </Badge>
+        );
       },
     },
     {
@@ -597,9 +498,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       header: t("common.status"),
       cell: ({ row }: any) => {
         const name = getStatusName(row.original.transaction_status_id);
-        return name
-          ? <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs">{name}</Badge>
-          : <span className="text-muted-foreground text-xs">—</span>;
+        return name ? <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs">{name}</Badge> : <span className="text-muted-foreground text-xs">—</span>;
       },
     },
     {
@@ -623,9 +522,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       header: t("nav.invoices"),
       cell: ({ row }: any) => {
         const num = getInvoiceNumber(row.original.invoice_id);
-        return num
-          ? <Badge variant="outline" className="text-xs font-mono">{num}</Badge>
-          : <span className="text-muted-foreground text-xs">—</span>;
+        return num ? <Badge variant="outline" className="text-xs font-mono">{num}</Badge> : <span className="text-muted-foreground text-xs">—</span>;
       },
     },
     {
@@ -634,9 +531,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
         <div className="text-right">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              <Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{t("common.actions")}</DropdownMenuLabel>
@@ -648,10 +543,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
                 <Edit className="mr-2 h-4 w-4" />{t("transactions.editTransaction")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="flex items-center text-destructive focus:text-destructive cursor-pointer"
-                onClick={() => openDelete(row.original)}
-              >
+              <DropdownMenuItem className="flex items-center text-destructive focus:text-destructive cursor-pointer" onClick={() => openDelete(row.original)}>
                 <Trash className="mr-2 h-4 w-4" />{t("transactions.deleteTransaction")}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -665,7 +557,6 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     (tx.description || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // ── No client guard (accountant view only) ────────────────────────────────
   if (userRole === "accountant" && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
@@ -685,18 +576,13 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t("transactions.title")}</h1>
-            <p className="text-muted-foreground">
-              {t("transactions.subtitle")}
-              {selectedClient && ` — ${selectedClient.name}`}
-            </p>
+            <p className="text-muted-foreground">{t("transactions.subtitle")}{selectedClient && ` — ${selectedClient.name}`}</p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
@@ -711,33 +597,21 @@ const Transactions = ({ userRole }: TransactionsProps) => {
           </div>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="transactions" className="space-y-6">
           <TabsList className="bg-muted/50 p-1">
             <TabsTrigger value="transactions">{t("transactions.title")}</TabsTrigger>
             <TabsTrigger value="statuses">Status de Transação</TabsTrigger>
           </TabsList>
 
-          {/* Transactions tab */}
           <TabsContent value="transactions" className="space-y-4">
             <div className="relative max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder={t("common.search") + "..."}
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <Input type="search" placeholder={t("common.search") + "..."} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle>{t("transactions.transactionHistory")}</CardTitle>
-                <CardDescription>
-                  {txLoading
-                    ? "Carregando…"
-                    : t("transactions.showingTransactions").replace("{count}", String(filteredTransactions.length))}
-                </CardDescription>
+                <CardDescription>{t("transactions.showingTransactions").replace("{count}", String(filteredTransactions.length))}</CardDescription>
               </CardHeader>
               <CardContent>
                 <DataTable columns={columns} data={filteredTransactions} />
@@ -745,38 +619,29 @@ const Transactions = ({ userRole }: TransactionsProps) => {
             </Card>
           </TabsContent>
 
-          {/* Statuses tab */}
           <TabsContent value="statuses" className="space-y-6">
             <TransactionStatusSection clientId={clientId} t={t} toast={toast} />
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* ── View Details ──────────────────────────────────────────────────── */}
+      {/* ── View Details ─────────────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Detalhes da Transação
+              <FileText className="h-5 w-5 text-primary" />Detalhes da Transação
             </DialogTitle>
           </DialogHeader>
-
           {selectedTx && (
             <div className="space-y-1">
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 mb-1">
                 <span className="text-sm text-muted-foreground font-medium">Valor</span>
-                <span className={cn(
-                  "text-2xl font-bold",
-                  parseFloat(selectedTx.amount) < 0 ? "text-red-600" : "text-green-600"
-                )}>
-                  {parseFloat(selectedTx.amount) < 0 ? "− " : ""}
-                  {formatCurrency(Math.abs(parseFloat(selectedTx.amount)))}
+                <span className={cn("text-2xl font-bold", amountColorClass(selectedTx.category_id))}>
+                  {formatCurrency(selectedTx.amount)}
                 </span>
               </div>
-
               <Separator />
-
               <DetailRow icon={Calendar}     label="Data"            value={formatDate(selectedTx.transaction_date)} />
               <DetailRow icon={AlignLeft}    label="Descrição"       value={selectedTx.description} />
               <DetailRow icon={Landmark}     label="Conta"           value={getAccountName(selectedTx.account_id)} />
@@ -788,7 +653,6 @@ const Transactions = ({ userRole }: TransactionsProps) => {
               <DetailRow icon={Layers}       label="ID"              value={String(selectedTx.id)} mono />
             </div>
           )}
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDetailOpen(false)}>Fechar</Button>
             <Button variant="outline" className="gap-2" onClick={() => { setIsDetailOpen(false); openEdit(selectedTx); }}>
@@ -801,12 +665,10 @@ const Transactions = ({ userRole }: TransactionsProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* ── Create ───────────────────────────────────────────────────────── */}
+      {/* ── Create ──────────────────────────────────────────────────────── */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t("transactions.addTransaction")}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{t("transactions.addTransaction")}</DialogTitle></DialogHeader>
           <TransactionFormFields form={addForm} setForm={setAddForm} {...sharedProps} />
           <DialogFooter className="pt-2">
             <Button variant="outline" onClick={() => setIsAddOpen(false)}>{t("common.cancel")}</Button>
@@ -817,14 +679,11 @@ const Transactions = ({ userRole }: TransactionsProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* ── Edit ─────────────────────────────────────────────────────────── */}
+      {/* ── Edit ────────────────────────────────────────────────────────── */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Edit className="h-5 w-5 text-primary" />
-              {t("transactions.editTransaction")}
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Edit className="h-5 w-5 text-primary" />{t("transactions.editTransaction")}</DialogTitle>
           </DialogHeader>
           <TransactionFormFields form={editForm} setForm={setEditForm} {...sharedProps} />
           <DialogFooter className="pt-2">
@@ -836,41 +695,30 @@ const Transactions = ({ userRole }: TransactionsProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete confirm ────────────────────────────────────────────────── */}
+      {/* ── Delete confirm ───────────────────────────────────────────────── */}
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("transactions.deleteTransaction")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a transação{" "}
-              <span className="font-semibold">"{deletingTx?.description}"</span>?
-              Esta ação não poderá ser desfeita.
+              Tem certeza que deseja excluir a transação <span className="font-semibold">"{deletingTx?.description}"</span>? Esta ação não poderá ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={deleteMutation.isPending}>
               {deleteMutation.isPending ? "Excluindo…" : t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Upload CSV ───────────────────────────────────────────────────── */}
+      {/* ── Upload CSV ──────────────────────────────────────────────────── */}
       <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{t("transactions.importTransactionsFromCSV")}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{t("transactions.importTransactionsFromCSV")}</DialogTitle></DialogHeader>
           <UploadCSV
-            onUpload={() => {
-              setIsUploadOpen(false);
-              toast({ title: t("toast.csvUploaded"), description: t("toast.csvUploadedDesc") });
-            }}
+            onUpload={() => { setIsUploadOpen(false); toast({ title: t("toast.csvUploaded"), description: t("toast.csvUploadedDesc") }); }}
             onCancel={() => setIsUploadOpen(false)}
           />
         </DialogContent>
