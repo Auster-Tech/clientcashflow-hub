@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -16,6 +15,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useClients, useClientUsers } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
+
+// Helper: the backend Pydantic model uses alias='isAdmin', so the JSON response
+// may contain either `isAdmin` (when serialized by alias) or `is_admin`.
+// This helper normalises both shapes.
+function getIsAdmin(user: any): boolean {
+  if (typeof user?.isAdmin === 'boolean') return user.isAdmin;
+  if (typeof user?.is_admin === 'boolean') return user.is_admin;
+  return false;
+}
 
 const ClientDetails = () => {
   const { t } = useTranslation();
@@ -44,7 +52,7 @@ const ClientDetails = () => {
 
   // Edit user state
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<{ index: number; name: string; email: string; is_admin: boolean } | null>(null);
+  const [editingUser, setEditingUser] = useState<{ index: number; id: number; name: string; email: string; is_admin: boolean } | null>(null);
 
   const openEditClient = () => {
     if (!client) return;
@@ -83,6 +91,22 @@ const ClientDetails = () => {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       },
     });
+  };
+
+  const openEditUser = (user: any, index: number) => {
+    const userId = user?.id;
+    if (!userId) {
+      toast({ title: "Error", description: "Cannot edit user: missing ID.", variant: "destructive" });
+      return;
+    }
+    setEditingUser({
+      index,
+      id: userId,
+      name: user.name || '',
+      email: user.email || '',
+      is_admin: getIsAdmin(user),
+    });
+    setIsEditUserOpen(true);
   };
 
   if (clientLoading) {
@@ -164,13 +188,13 @@ const ClientDetails = () => {
                   <CardDescription>{t('clientDetails.usersAssociated')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {users.map((user: CompanyUser, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  {(users as any[]).map((user: any, index: number) => (
+                    <div key={user?.id ?? index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                       <div>
                         <p className="font-medium">{user.name}</p>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
-                      <Badge>{user.is_admin ? 'Admin' : 'User'}</Badge>
+                      <Badge>{getIsAdmin(user) ? 'Admin' : 'User'}</Badge>
                     </div>
                   ))}
                   <Button variant="outline" className="w-full gap-2" onClick={() => setIsAddUserOpen(true)}><Plus className="h-4 w-4" />{t('clientDetails.addUser')}</Button>
@@ -190,8 +214,8 @@ const ClientDetails = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {users.map((user: CompanyUser, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
+                  {(users as any[]).map((user: any, index: number) => (
+                    <div key={user?.id ?? index} className="flex items-center justify-between p-4 rounded-lg border">
                       <div className="flex items-center gap-4">
                         <div className="rounded-full bg-primary/10 p-3"><Users className="h-5 w-5 text-primary" /></div>
                         <div>
@@ -200,11 +224,12 @@ const ClientDetails = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <Badge variant={user.is_admin ? 'default' : 'outline'}>{user.is_admin ? 'Admin' : 'User'}</Badge>
-                        <Button variant="outline" size="sm" onClick={() => {
-                          setEditingUser({ index, name: user.name, email: user.email, is_admin: user.is_admin });
-                          setIsEditUserOpen(true);
-                        }}>{t('accounts.manage')}</Button>
+                        <Badge variant={getIsAdmin(user) ? 'default' : 'outline'}>
+                          {getIsAdmin(user) ? 'Admin' : 'User'}
+                        </Badge>
+                        <Button variant="outline" size="sm" onClick={() => openEditUser(user, index)}>
+                          {t('accounts.manage')}
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -259,23 +284,38 @@ const ClientDetails = () => {
       </Dialog>
 
       {/* Edit User Dialog */}
-      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+      <Dialog open={isEditUserOpen} onOpenChange={(open) => { setIsEditUserOpen(open); if (!open) setEditingUser(null); }}>
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader><DialogTitle>{t('common.edit')} User</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2"><Label>Name</Label><Input value={editingUser?.name || ''} onChange={(e) => setEditingUser(p => p ? { ...p, name: e.target.value } : p)} /></div>
-            <div className="space-y-2"><Label>Email</Label><Input type="email" value={editingUser?.email || ''} onChange={(e) => setEditingUser(p => p ? { ...p, email: e.target.value } : p)} /></div>
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                value={editingUser?.name || ''}
+                onChange={(e) => setEditingUser(p => p ? { ...p, name: e.target.value } : p)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={editingUser?.email || ''}
+                onChange={(e) => setEditingUser(p => p ? { ...p, email: e.target.value } : p)}
+              />
+            </div>
             <div className="flex items-center gap-2">
-              <Checkbox id="edit-is-admin" checked={editingUser?.is_admin || false} onCheckedChange={(checked) => setEditingUser(p => p ? { ...p, is_admin: !!checked } : p)} />
+              <Checkbox
+                id="edit-is-admin"
+                checked={editingUser?.is_admin || false}
+                onCheckedChange={(checked) => setEditingUser(p => p ? { ...p, is_admin: !!checked } : p)}
+              />
               <Label htmlFor="edit-is-admin">Admin</Label>
             </div>
           </div>
           <DialogFooter>
             <Button variant="destructive" onClick={() => {
-              if (!editingUser) return;
-              const user = users[editingUser.index] as any;
-              if (!user?.id) return;
-              deleteUserMutation.mutate(user.id, {
+              if (!editingUser?.id) return;
+              deleteUserMutation.mutate(editingUser.id, {
                 onSuccess: () => {
                   toast({ title: "Success", description: "User deleted successfully." });
                   setIsEditUserOpen(false);
@@ -286,19 +326,30 @@ const ClientDetails = () => {
             }} disabled={deleteUserMutation.isPending}>
               {deleteUserMutation.isPending ? 'Deleting...' : t('common.delete')}
             </Button>
-            <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>{t('common.cancel')}</Button>
+            <Button variant="outline" onClick={() => { setIsEditUserOpen(false); setEditingUser(null); }}>
+              {t('common.cancel')}
+            </Button>
             <Button onClick={() => {
-              if (!editingUser) return;
-              const user = users[editingUser.index] as any;
-              if (!user?.id) return;
-              updateUserMutation.mutate({ userId: user.id, data: { name: editingUser.name, email: editingUser.email, isAdmin: editingUser.is_admin, status: Status.ACTIVE } }, {
-                onSuccess: () => {
-                  toast({ title: "Success", description: "User updated successfully." });
-                  setIsEditUserOpen(false);
-                  setEditingUser(null);
+              if (!editingUser?.id) return;
+              updateUserMutation.mutate(
+                {
+                  userId: editingUser.id,
+                  data: {
+                    name: editingUser.name,
+                    email: editingUser.email,
+                    isAdmin: editingUser.is_admin,
+                    status: Status.ACTIVE,
+                  },
                 },
-                onError: (error) => toast({ title: "Error", description: error.message, variant: "destructive" }),
-              });
+                {
+                  onSuccess: () => {
+                    toast({ title: "Success", description: "User updated successfully." });
+                    setIsEditUserOpen(false);
+                    setEditingUser(null);
+                  },
+                  onError: (error) => toast({ title: "Error", description: error.message, variant: "destructive" }),
+                }
+              );
             }} disabled={updateUserMutation.isPending}>
               {updateUserMutation.isPending ? 'Saving...' : t('common.save')}
             </Button>
