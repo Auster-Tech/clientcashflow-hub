@@ -24,11 +24,12 @@ import {
   Plus, Search, MoreHorizontal, FileText, Trash, Upload,
   Tag, Edit, Trash2, Calendar, AlignLeft, Layers,
   Landmark, Users, FolderKanban, Receipt, CheckCircle2,
+  CalendarIcon, X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/TranslationContext";
 import {
-  useTransactions, useCategories, useCostCenters,
+  useCategories, useCostCenters,
   usePartners, useAccounts, useInvoices, useTransactionStatuses,
 } from "@/hooks/useApi";
 import { useClient } from "@/contexts/ClientContext";
@@ -36,13 +37,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfYear, endOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { transactionsApi } from "@/lib/api";
 
 interface TransactionsProps {
   userRole: UserRole;
 }
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+const toIso = (d: Date) => format(d, "yyyy-MM-dd");
+
+const defaultStartDate = () => startOfYear(new Date());
+const defaultEndDate   = () => endOfYear(new Date());
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface TransactionFormState {
@@ -81,6 +89,92 @@ const formatDate = (raw: any) => {
   try { return format(new Date(raw), "dd/MM/yyyy"); }
   catch { return String(raw); }
 };
+
+// ── Date range picker ─────────────────────────────────────────────────────────
+interface DateRangePickerProps {
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  onStartChange: (d: Date | undefined) => void;
+  onEndChange: (d: Date | undefined) => void;
+  onClear: () => void;
+}
+
+function DateRangePicker({ startDate, endDate, onStartChange, onEndChange, onClear }: DateRangePickerProps) {
+  const hasCustomDates =
+    (startDate && toIso(startDate) !== toIso(defaultStartDate())) ||
+    (endDate   && toIso(endDate)   !== toIso(defaultEndDate()));
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      {/* Start date */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 gap-1.5 text-sm font-normal",
+              !startDate && "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="h-3.5 w-3.5" />
+            {startDate ? format(startDate, "dd/MM/yyyy") : "Data inicial"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <CalendarComponent
+            mode="single"
+            selected={startDate}
+            onSelect={onStartChange}
+            initialFocus
+            className="p-3 pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
+
+      <span className="text-muted-foreground text-sm">até</span>
+
+      {/* End date */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 gap-1.5 text-sm font-normal",
+              !endDate && "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="h-3.5 w-3.5" />
+            {endDate ? format(endDate, "dd/MM/yyyy") : "Data final"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <CalendarComponent
+            mode="single"
+            selected={endDate}
+            onSelect={onEndChange}
+            initialFocus
+            className="p-3 pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
+
+      {/* Clear — only show when dates differ from the default year range */}
+      {hasCustomDates && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 gap-1 text-muted-foreground hover:text-foreground"
+          onClick={onClear}
+        >
+          <X className="h-3.5 w-3.5" />
+          Limpar filtro
+        </Button>
+      )}
+    </div>
+  );
+}
 
 // ── Detail row component ──────────────────────────────────────────────────────
 function DetailRow({
@@ -214,8 +308,8 @@ const TransactionStatusSection = ({ clientId, t, toast }: { clientId: number | u
   const [deleting, setDeleting] = useState<any>(null);
   const [form, setForm] = useState(emptyStatusForm);
 
-  const openAdd = () => { setEditing(null); setForm(emptyStatusForm); setIsFormOpen(true); };
-  const openEdit = (item: any) => { setEditing(item); setForm({ name: item.name || "", description: item.description || "" }); setIsFormOpen(true); };
+  const openAdd    = () => { setEditing(null); setForm(emptyStatusForm); setIsFormOpen(true); };
+  const openEdit   = (item: any) => { setEditing(item); setForm({ name: item.name || "", description: item.description || "" }); setIsFormOpen(true); };
   const openDelete = (item: any) => { setDeleting(item); setIsDeleteOpen(true); };
 
   const handleSubmit = () => {
@@ -295,7 +389,16 @@ const TransactionStatusSection = ({ clientId, t, toast }: { clientId: number | u
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate(deleting?.id, { onSuccess: () => { toast({ title: "Status removido." }); setIsDeleteOpen(false); setDeleting(null); }, onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }) })} className="bg-destructive hover:bg-destructive/90" disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "Removendo…" : "Remover"}</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate(deleting?.id, {
+                onSuccess: () => { toast({ title: "Status removido." }); setIsDeleteOpen(false); setDeleting(null); },
+                onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
+              })}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Removendo…" : "Remover"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -308,27 +411,77 @@ const Transactions = ({ userRole }: TransactionsProps) => {
   const { t } = useTranslation();
   const { selectedClient } = useClient();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const [searchQuery, setSearchQuery] = useState("");
+  // ── Filter state — default to current year ────────────────────────────────
+  const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(defaultStartDate);
+  const [filterEndDate,   setFilterEndDate]   = useState<Date | undefined>(defaultEndDate);
+
+  const clearDateFilter = () => {
+    setFilterStartDate(defaultStartDate());
+    setFilterEndDate(defaultEndDate());
+  };
+
+  // ── Dialog / selection state ──────────────────────────────────────────────
+  const [searchQuery,  setSearchQuery]  = useState("");
   const [isAddOpen,    setIsAddOpen]    = useState(false);
   const [isEditOpen,   setIsEditOpen]   = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [selectedTx,  setSelectedTx]  = useState<any>(null);
-  const [editingTx,   setEditingTx]   = useState<any>(null);
-  const [deletingTx,  setDeletingTx]  = useState<any>(null);
-  const [addForm,  setAddForm]  = useState<TransactionFormState>(emptyForm);
-  const [editForm, setEditForm] = useState<TransactionFormState>(emptyForm);
+  const [selectedTx,   setSelectedTx]  = useState<any>(null);
+  const [editingTx,    setEditingTx]   = useState<any>(null);
+  const [deletingTx,   setDeletingTx]  = useState<any>(null);
+  const [addForm,      setAddForm]      = useState<TransactionFormState>(emptyForm);
+  const [editForm,     setEditForm]     = useState<TransactionFormState>(emptyForm);
 
   const clientId = selectedClient?.id ?? undefined;
 
-  const { useGetAll: useGetTx, useCreate: useCreateTx, useUpdate: useUpdateTx, useDelete: useDeleteTx } = useTransactions();
-  const { data: transactions = [] } = useGetTx();
-  const createMutation = useCreateTx();
-  const updateMutation = useUpdateTx();
-  const deleteMutation = useDeleteTx();
+  // ── Transactions query — new client-scoped endpoint ───────────────────────
+  const {
+    data: transactions = [],
+    isLoading: txLoading,
+  } = useQuery({
+    queryKey: [
+      "transactions",
+      clientId,
+      filterStartDate ? toIso(filterStartDate) : null,
+      filterEndDate   ? toIso(filterEndDate)   : null,
+    ],
+    queryFn: () =>
+      clientId
+        ? transactionsApi.getByClient(
+            clientId,
+            filterStartDate ? toIso(filterStartDate) : undefined,
+            filterEndDate   ? toIso(filterEndDate)   : undefined,
+          )
+        : Promise.resolve([]),
+    enabled: !!clientId,
+  });
 
+  // ── Mutation helpers (write operations stay scoped to account) ────────────
+  const invalidateTx = () =>
+    queryClient.invalidateQueries({ queryKey: ["transactions", clientId] });
+
+  const createMutation = useMutation({
+    mutationFn: ({ acctId, data }: { acctId: number; data: any }) =>
+      transactionsApi.create(acctId, data),
+    onSuccess: invalidateTx,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ acctId, transactionId, data }: { acctId: number; transactionId: number; data: any }) =>
+      transactionsApi.update(acctId, transactionId, data),
+    onSuccess: invalidateTx,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: ({ acctId, transactionId }: { acctId: number; transactionId: number }) =>
+      transactionsApi.delete(acctId, transactionId),
+    onSuccess: invalidateTx,
+  });
+
+  // ── Related data hooks ────────────────────────────────────────────────────
   const { useGetAll: useGetCats }          = useCategories(clientId);
   const { data: categories = [] }          = useGetCats();
   const { useGetAll: useGetCCs }           = useCostCenters(clientId);
@@ -347,23 +500,14 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     id != null ? ((list as any[]).find((i) => i.id === Number(id))?.[field] ?? null) : null;
 
   const getCategoryName   = (id: any) => lookup(categories, id);
-
-  /** Returns "income" | "expense" | null based on the category list. */
-  const getCategoryType = (id: any): "income" | "expense" | null =>
+  const getCategoryType   = (id: any): "income" | "expense" | null =>
     id != null ? ((categories as any[]).find((c) => c.id === Number(id))?.type ?? null) : null;
-
   const getAccountName    = (id: any) => lookup(accounts, id);
   const getStatusName     = (id: any) => lookup(transactionStatuses, id);
   const getCostCenterName = (id: any) => lookup(costCenters, id);
   const getPartnerName    = (id: any) => lookup(partners, id);
   const getInvoiceNumber  = (id: any) => lookup(invoices, id, "invoice_number");
 
-  /**
-   * Returns the Tailwind colour class for the amount cell.
-   * - expense category → red
-   * - income  category → green
-   * - unknown / no category → neutral (no class)
-   */
   const amountColorClass = (categoryId: any): string => {
     const type = getCategoryType(categoryId);
     if (type === "expense") return "text-red-600";
@@ -371,7 +515,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     return "text-foreground";
   };
 
-  // ── Form validation ───────────────────────────────────────────────────────
+  // ── Form helpers ──────────────────────────────────────────────────────────
   const isFormValid = (form: TransactionFormState) =>
     !!form.date &&
     form.amount.trim() !== "" &&
@@ -407,27 +551,43 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     invoiceId:           tx.invoice_id    != null ? String(tx.invoice_id)      : "none",
   });
 
+  // ── Action handlers ───────────────────────────────────────────────────────
   const handleCreate = () => {
     if (!isFormValid(addForm)) return;
     createMutation.mutate({ acctId: Number(addForm.accountId), data: buildPayload(addForm) }, {
-      onSuccess: () => { toast({ title: t("toast.transactionAdded"), description: t("toast.transactionAddedDesc") }); setIsAddOpen(false); setAddForm(emptyForm); },
+      onSuccess: () => {
+        toast({ title: t("toast.transactionAdded"), description: t("toast.transactionAddedDesc") });
+        setIsAddOpen(false);
+        setAddForm(emptyForm);
+      },
       onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
     });
   };
 
   const handleUpdate = () => {
     if (!isFormValid(editForm) || !editingTx) return;
-    updateMutation.mutate({ acctId: Number(editForm.accountId), transactionId: editingTx.id, data: buildPayload(editForm) }, {
-      onSuccess: () => { toast({ title: "Transação atualizada com sucesso." }); setIsEditOpen(false); setEditingTx(null); },
-      onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
-    });
+    updateMutation.mutate(
+      { acctId: Number(editForm.accountId), transactionId: editingTx.id, data: buildPayload(editForm) },
+      {
+        onSuccess: () => {
+          toast({ title: "Transação atualizada com sucesso." });
+          setIsEditOpen(false);
+          setEditingTx(null);
+        },
+        onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
+      }
+    );
   };
 
   const handleDelete = () => {
     if (!deletingTx) return;
     const acctId = deletingTx.account_id ?? deletingTx.financialAccountId;
     deleteMutation.mutate({ acctId, transactionId: deletingTx.id }, {
-      onSuccess: () => { toast({ title: t("toast.transactionDeleted"), description: t("toast.transactionDeletedDesc") }); setIsDeleteOpen(false); setDeletingTx(null); },
+      onSuccess: () => {
+        toast({ title: t("toast.transactionDeleted"), description: t("toast.transactionDeletedDesc") });
+        setIsDeleteOpen(false);
+        setDeletingTx(null);
+      },
       onError: (err: any) => toast({ title: "Erro", description: err.message, variant: "destructive" }),
     });
   };
@@ -458,7 +618,6 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       accessorKey: "amount",
       header: t("common.amount"),
       cell: ({ row }: any) => (
-        // Colour is driven exclusively by category type: red = expense, green = income
         <span className={cn("font-medium text-sm whitespace-nowrap", amountColorClass(row.original.category_id))}>
           {formatCurrency(row.original.amount)}
         </span>
@@ -557,6 +716,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     (tx.description || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // ── No client guard ───────────────────────────────────────────────────────
   if (userRole === "accountant" && !selectedClient) {
     return (
       <DashboardLayout userRole={userRole}>
@@ -576,13 +736,19 @@ const Transactions = ({ userRole }: TransactionsProps) => {
     );
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <DashboardLayout userRole={userRole}>
       <div className="space-y-6">
+
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t("transactions.title")}</h1>
-            <p className="text-muted-foreground">{t("transactions.subtitle")}{selectedClient && ` — ${selectedClient.name}`}</p>
+            <p className="text-muted-foreground">
+              {t("transactions.subtitle")}
+              {selectedClient && ` — ${selectedClient.name}`}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <ClientSelector userRole={userRole} />
@@ -597,21 +763,52 @@ const Transactions = ({ userRole }: TransactionsProps) => {
           </div>
         </div>
 
+        {/* Tabs */}
         <Tabs defaultValue="transactions" className="space-y-6">
           <TabsList className="bg-muted/50 p-1">
             <TabsTrigger value="transactions">{t("transactions.title")}</TabsTrigger>
             <TabsTrigger value="statuses">Status de Transação</TabsTrigger>
           </TabsList>
 
+          {/* ── Transactions tab ─────────────────────────────────────────── */}
           <TabsContent value="transactions" className="space-y-4">
-            <div className="relative max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder={t("common.search") + "..."} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+
+            {/* Filter bar */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Text search */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder={t("common.search") + "..."}
+                  className="pl-8 h-9 w-52"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <Separator orientation="vertical" className="h-6" />
+
+              {/* Date range */}
+              <DateRangePicker
+                startDate={filterStartDate}
+                endDate={filterEndDate}
+                onStartChange={setFilterStartDate}
+                onEndChange={setFilterEndDate}
+                onClear={clearDateFilter}
+              />
             </div>
+
+            {/* Table card */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle>{t("transactions.transactionHistory")}</CardTitle>
-                <CardDescription>{t("transactions.showingTransactions").replace("{count}", String(filteredTransactions.length))}</CardDescription>
+                <CardDescription>
+                  {txLoading
+                    ? "Carregando…"
+                    : t("transactions.showingTransactions").replace("{count}", String(filteredTransactions.length))
+                  }
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <DataTable columns={columns} data={filteredTransactions} />
@@ -619,6 +816,7 @@ const Transactions = ({ userRole }: TransactionsProps) => {
             </Card>
           </TabsContent>
 
+          {/* ── Statuses tab ─────────────────────────────────────────────── */}
           <TabsContent value="statuses" className="space-y-6">
             <TransactionStatusSection clientId={clientId} t={t} toast={toast} />
           </TabsContent>
@@ -683,7 +881,9 @@ const Transactions = ({ userRole }: TransactionsProps) => {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Edit className="h-5 w-5 text-primary" />{t("transactions.editTransaction")}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5 text-primary" />{t("transactions.editTransaction")}
+            </DialogTitle>
           </DialogHeader>
           <TransactionFormFields form={editForm} setForm={setEditForm} {...sharedProps} />
           <DialogFooter className="pt-2">
@@ -701,7 +901,9 @@ const Transactions = ({ userRole }: TransactionsProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("transactions.deleteTransaction")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a transação <span className="font-semibold">"{deletingTx?.description}"</span>? Esta ação não poderá ser desfeita.
+              Tem certeza que deseja excluir a transação{" "}
+              <span className="font-semibold">"{deletingTx?.description}"</span>?{" "}
+              Esta ação não poderá ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -718,7 +920,10 @@ const Transactions = ({ userRole }: TransactionsProps) => {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader><DialogTitle>{t("transactions.importTransactionsFromCSV")}</DialogTitle></DialogHeader>
           <UploadCSV
-            onUpload={() => { setIsUploadOpen(false); toast({ title: t("toast.csvUploaded"), description: t("toast.csvUploadedDesc") }); }}
+            onUpload={() => {
+              setIsUploadOpen(false);
+              toast({ title: t("toast.csvUploaded"), description: t("toast.csvUploadedDesc") });
+            }}
             onCancel={() => setIsUploadOpen(false)}
           />
         </DialogContent>

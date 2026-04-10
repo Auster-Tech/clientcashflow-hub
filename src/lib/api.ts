@@ -14,7 +14,6 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
 
-  // 204 No Content
   if (response.status === 204) {
     return undefined as T;
   }
@@ -132,12 +131,24 @@ export const transactionStatusApi = {
 
 // Transactions
 export const transactionsApi = {
+  // Legacy endpoints (by account)
   getAll: () => request<any[]>('/transactions/'),
   getByAccount: (accountId: number) => request<any[]>(`/transactions/${accountId}`),
   getById: (accountId: number, transactionId: number) => request<any>(`/transactions/${accountId}/${transactionId}`),
-  // ← NEW: all transactions for a client (across all their accounts)
-  getByClient: (clientId: number) => request<any[]>(`/clients/${clientId}/transactions/`),
   create: (accountId: number, data: any) => request<any>(`/transactions/${accountId}`, { method: 'POST', body: JSON.stringify(data) }),
   update: (accountId: number, transactionId: number, data: any) => request<any>(`/transactions/${accountId}/${transactionId}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (accountId: number, transactionId: number) => request<void>(`/transactions/${accountId}/${transactionId}`, { method: 'DELETE' }),
+
+  // NEW — scoped to client with optional date range
+  getByClient: (
+    clientId: number,
+    startDate?: string,   // "YYYY-MM-DD"
+    endDate?: string,     // "YYYY-MM-DD"
+  ) => {
+    const qs = new URLSearchParams();
+    if (startDate) qs.set('start_date', startDate);
+    if (endDate)   qs.set('end_date',   endDate);
+    const query = qs.toString() ? `?${qs}` : '';
+    return request<any[]>(`/clients/${clientId}/transactions/${query}`);
+  },
 };
