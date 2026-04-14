@@ -4,15 +4,16 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ChevronLeft, ChevronRight, LayoutDashboard, Users, 
-  CreditCard, FileSpreadsheet, Landmark, Tag, FolderKanban, 
+import {
+  ChevronLeft, ChevronRight, LayoutDashboard, Users,
+  CreditCard, FileSpreadsheet, Landmark, Tag, FolderKanban,
   FileText, Settings, LogOut, Building, BarChart
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { UserRole } from '@/types';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
+import { useAuth } from '@/contexts/AuthContext';
 
 type SidebarProps = {
   role: UserRole;
@@ -31,87 +32,80 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
   const location = useLocation();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { logout } = useAuth();
   const [hovering, setHovering] = useState(false);
 
   const navigationItems: NavItem[] = [
-    { 
-      titleKey: 'nav.dashboard', 
-      href: '/dashboard', 
+    {
+      titleKey: 'nav.dashboard',
+      href: '/dashboard',
       icon: LayoutDashboard,
-      roles: ['accountant', 'client-admin', 'client-user'] 
+      roles: ['accountant', 'client-admin', 'client-user']
     },
-    { 
-      titleKey: 'nav.clients', 
-      href: '/clients', 
+    {
+      titleKey: 'nav.clients',
+      href: '/clients',
       icon: Building,
-      roles: ['accountant'] 
+      roles: ['accountant']
     },
-    { 
-      titleKey: 'nav.cashflow', 
-      href: '/cashflow', 
-      icon: BarChart,
-      roles: ['accountant', 'client-admin', 'client-user'] 
-    },
-    { 
-      titleKey: 'nav.transactions', 
-      href: '/transactions', 
-      icon: FileSpreadsheet,
-      roles: ['accountant', 'client-admin', 'client-user'] 
-    },
-    { 
-      titleKey: 'nav.accounts', 
-      href: '/accounts', 
+    {
+      titleKey: 'nav.accounts',
+      href: '/accounts',
       icon: Landmark,
-      roles: ['accountant', 'client-admin', 'client-user'] 
+      roles: ['accountant', 'client-admin', 'client-user']
     },
-    { 
-      titleKey: 'nav.categories', 
-      href: '/categories', 
+    {
+      titleKey: 'nav.categories',
+      href: '/categories',
       icon: Tag,
-      roles: ['accountant', 'client-admin', 'client-user'] 
+      roles: ['accountant', 'client-admin', 'client-user']
     },
-    { 
-      titleKey: 'nav.costCenters', 
-      href: '/cost-centers', 
+    {
+      titleKey: 'nav.costCenters',
+      href: '/cost-centers',
       icon: FolderKanban,
-      roles: ['accountant', 'client-admin', 'client-user'] 
+      roles: ['accountant', 'client-admin', 'client-user']
     },
-    { 
-      titleKey: 'nav.partners', 
-      href: '/partners', 
+    {
+      titleKey: 'nav.partners',
+      href: '/partners',
       icon: Users,
-      roles: ['accountant', 'client-admin', 'client-user'] 
+      roles: ['accountant', 'client-admin', 'client-user']
     },
-    { 
-      titleKey: 'nav.invoices', 
-      href: '/invoices', 
+    {
+      titleKey: 'nav.invoices',
+      href: '/invoices',
       icon: FileText,
-      roles: ['accountant', 'client-admin', 'client-user'] 
+      roles: ['accountant', 'client-admin', 'client-user']
+    },
+    {
+      titleKey: 'nav.transactions',
+      href: '/transactions',
+      icon: FileSpreadsheet,
+      roles: ['accountant', 'client-admin', 'client-user']
+    },
+    {
+      titleKey: 'nav.cashflow',
+      href: '/cashflow',
+      icon: BarChart,
+      roles: ['accountant', 'client-admin', 'client-user']
     },
   ];
-  
-  // Filter navigation items based on user role
-  const filteredNavItems = navigationItems.filter(item => 
+
+  const filteredNavItems = navigationItems.filter(item =>
     item.roles.includes(role)
   );
 
-  // Helper function to check if user is a client
-  const isClient = role === 'client-admin' || role === 'client-user';
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
     toast({
       title: t('toast.loggedOut'),
       description: t('toast.loggedOutDesc'),
     });
-
-    // In a real app, this would handle authentication logout
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 1000);
+    await logout();
   };
 
   return (
-    <aside 
+    <aside
       className={cn(
         "h-screen fixed top-0 left-0 z-40 flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out",
         collapsed ? "w-[68px]" : "w-64",
@@ -128,8 +122,8 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
           <CreditCard className="h-6 w-6 text-sidebar-primary" />
           <span className="font-semibold text-lg whitespace-nowrap">Tesouraria Web</span>
         </div>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon"
           className={cn(
             "rounded-full p-1 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent",
@@ -175,7 +169,7 @@ export function Sidebar({ role, collapsed, setCollapsed }: SidebarProps) {
 
       <div className="mt-auto p-4 space-y-2">
         <LanguageToggle collapsed={collapsed && !hovering} />
-        
+
         <Button
           variant="ghost"
           className={cn(

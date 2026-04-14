@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useClients, useClientUsers } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
+import { authAdminApi } from '@/lib/api';
 
 // Helper: the backend Pydantic model uses alias='isAdmin', so the JSON response
 // may contain either `isAdmin` (when serialized by alias) or `is_admin`.
@@ -38,7 +39,8 @@ const ClientDetails = () => {
 
   // Add user state
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', is_admin: false });
+  const [newUser, setNewUser] = useState({ name: '', email: '', is_admin: false, password: '' });
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
 
   const { useGetById, useUpdate } = useClients();
   const { data: client, isLoading: clientLoading } = useGetById(clientId);
@@ -52,7 +54,8 @@ const ClientDetails = () => {
 
   // Edit user state
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<{ index: number; id: number; name: string; email: string; is_admin: boolean } | null>(null);
+  const [editingUser, setEditingUser] = useState<{ index: number; id: number; name: string; email: string; is_admin: boolean; newPassword: string } | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   const openEditClient = () => {
     if (!client) return;
@@ -80,12 +83,22 @@ const ClientDetails = () => {
     });
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     createUserMutation.mutate({ name: newUser.name, email: newUser.email, isAdmin: newUser.is_admin, status: Status.ACTIVE }, {
-      onSuccess: () => {
+      onSuccess: async (createdUser: any) => {
+        if (newUser.password && createdUser?.id) {
+          setIsSettingPassword(true);
+          try {
+            await authAdminApi.setClientUserPassword(createdUser.id, newUser.password);
+          } catch (err: any) {
+            toast({ title: "Aviso", description: "Usuário criado mas falhou ao definir senha: " + err.message, variant: "destructive" });
+          } finally {
+            setIsSettingPassword(false);
+          }
+        }
         toast({ title: "Success", description: "User added successfully." });
         setIsAddUserOpen(false);
-        setNewUser({ name: '', email: '', is_admin: false });
+        setNewUser({ name: '', email: '', is_admin: false, password: '' });
       },
       onError: (error) => {
         toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -105,8 +118,44 @@ const ClientDetails = () => {
       name: user.name || '',
       email: user.email || '',
       is_admin: getIsAdmin(user),
+      newPassword: '',
     });
     setIsEditUserOpen(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser?.id) return;
+    updateUserMutation.mutate(
+      {
+        userId: editingUser.id,
+        data: {
+          name: editingUser.name,
+          email: editingUser.email,
+          isAdmin: editingUser.is_admin,
+          status: Status.ACTIVE,
+        },
+      },
+      {
+        onSuccess: async () => {
+          if (editingUser.newPassword) {
+            setIsResettingPassword(true);
+            try {
+              await authAdminApi.setClientUserPassword(editingUser.id, editingUser.newPassword);
+              toast({ title: "Success", description: "User updated and password changed successfully." });
+            } catch (err: any) {
+              toast({ title: "Aviso", description: "Usuário atualizado mas falhou ao alterar senha: " + err.message, variant: "destructive" });
+            } finally {
+              setIsResettingPassword(false);
+            }
+          } else {
+            toast({ title: "Success", description: "User updated successfully." });
+          }
+          setIsEditUserOpen(false);
+          setEditingUser(null);
+        },
+        onError: (error) => toast({ title: "Error", description: error.message, variant: "destructive" }),
+      }
+    );
   };
 
   if (clientLoading) {
@@ -269,6 +318,10 @@ const ClientDetails = () => {
           <div className="space-y-4">
             <div className="space-y-2"><Label>Name</Label><Input placeholder="User name" value={newUser.name} onChange={(e) => setNewUser(p => ({ ...p, name: e.target.value }))} /></div>
             <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="user@example.com" value={newUser.email} onChange={(e) => setNewUser(p => ({ ...p, email: e.target.value }))} /></div>
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input type="password" placeholder="Define a password for this user" value={newUser.password} onChange={(e) => setNewUser(p => ({ ...p, password: e.target.value }))} />
+            </div>
             <div className="flex items-center gap-2">
               <Checkbox id="is-admin" checked={newUser.is_admin} onCheckedChange={(checked) => setNewUser(p => ({ ...p, is_admin: !!checked }))} />
               <Label htmlFor="is-admin">Admin</Label>
@@ -276,8 +329,8 @@ const ClientDetails = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleAddUser} disabled={createUserMutation.isPending}>
-              {createUserMutation.isPending ? 'Saving...' : t('common.save')}
+            <Button onClick={handleAddUser} disabled={createUserMutation.isPending || isSettingPassword}>
+              {(createUserMutation.isPending || isSettingPassword) ? 'Saving...' : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -301,6 +354,15 @@ const ClientDetails = () => {
                 type="email"
                 value={editingUser?.email || ''}
                 onChange={(e) => setEditingUser(p => p ? { ...p, email: e.target.value } : p)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>New Password <span className="text-muted-foreground text-xs">(optional — leave blank to keep current)</span></Label>
+              <Input
+                type="password"
+                placeholder="Enter new password to change it"
+                value={editingUser?.newPassword || ''}
+                onChange={(e) => setEditingUser(p => p ? { ...p, newPassword: e.target.value } : p)}
               />
             </div>
             <div className="flex items-center gap-2">
@@ -329,29 +391,8 @@ const ClientDetails = () => {
             <Button variant="outline" onClick={() => { setIsEditUserOpen(false); setEditingUser(null); }}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={() => {
-              if (!editingUser?.id) return;
-              updateUserMutation.mutate(
-                {
-                  userId: editingUser.id,
-                  data: {
-                    name: editingUser.name,
-                    email: editingUser.email,
-                    isAdmin: editingUser.is_admin,
-                    status: Status.ACTIVE,
-                  },
-                },
-                {
-                  onSuccess: () => {
-                    toast({ title: "Success", description: "User updated successfully." });
-                    setIsEditUserOpen(false);
-                    setEditingUser(null);
-                  },
-                  onError: (error) => toast({ title: "Error", description: error.message, variant: "destructive" }),
-                }
-              );
-            }} disabled={updateUserMutation.isPending}>
-              {updateUserMutation.isPending ? 'Saving...' : t('common.save')}
+            <Button onClick={handleUpdateUser} disabled={updateUserMutation.isPending || isResettingPassword}>
+              {(updateUserMutation.isPending || isResettingPassword) ? 'Saving...' : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>

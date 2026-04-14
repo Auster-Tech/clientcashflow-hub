@@ -160,12 +160,12 @@ export default function Categories({ userRole }: CategoriesProps) {
         </div>
 
         <div className="space-y-4">
-          <Input
+          {/* <Input
             placeholder={t('common.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
-          />
+          /> */}
           <DataTable
             columns={columns}
             data={filteredCategories}

@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -18,22 +17,32 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { CreditCard, Building, LineChart, Globe } from 'lucide-react';
-import { UserRole } from '@/types';
 import { useTranslation } from '@/contexts/TranslationContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
-interface IndexProps {
-  onLogin: (role: UserRole) => void;
-}
-
-const Index = ({ onLogin }: IndexProps) => {
+const Index = () => {
   const { t, language, setLanguage } = useTranslation();
+  const { login } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
-  const handleSubmit = (e: React.FormEvent, role: UserRole) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent, role: string) => {
     e.preventDefault();
-    // In a real app, you would validate credentials
-    onLogin(role);
+    setIsLoading(true);
+    try {
+      await login(email, password, role);
+    } catch (err: any) {
+      toast({
+        title: 'Erro ao entrar',
+        description: err.message || 'Verifique suas credenciais.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleLanguage = () => {
@@ -62,9 +71,9 @@ const Index = ({ onLogin }: IndexProps) => {
         <Tabs defaultValue="accountant" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="accountant">{t('common.accountant')}</TabsTrigger>
-            <TabsTrigger value="client-admin">{t('common.client')}</TabsTrigger>
+            <TabsTrigger value="client_user">{t('common.client')}</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="accountant">
             <Card className="border-0 shadow-lg">
               <CardHeader className="space-y-1">
@@ -81,10 +90,10 @@ const Index = ({ onLogin }: IndexProps) => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="accountant-email">{t('index.email')}</Label>
-                      <Input 
-                        id="accountant-email" 
-                        type="email" 
-                        placeholder="name@company.com" 
+                      <Input
+                        id="accountant-email"
+                        type="email"
+                        placeholder="name@company.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -97,24 +106,24 @@ const Index = ({ onLogin }: IndexProps) => {
                           {t('index.forgotpass')}
                         </Button>
                       </div>
-                      <Input 
-                        id="accountant-password" 
-                        type="password" 
+                      <Input
+                        id="accountant-password"
+                        type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                       />
                     </div>
-                    <Button type="submit" className="w-full">
-                      {t("index.accloginbutton")}
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? 'Entrando...' : t("index.accloginbutton")}
                     </Button>
                   </div>
                 </form>
               </CardContent>
             </Card>
           </TabsContent>
-          
-          <TabsContent value="client-admin">
+
+          <TabsContent value="client_user">
             <Card className="border-0 shadow-lg">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl flex items-center gap-2">
@@ -126,14 +135,14 @@ const Index = ({ onLogin }: IndexProps) => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <form onSubmit={(e) => handleSubmit(e, 'client-admin')}>
+                <form onSubmit={(e) => handleSubmit(e, 'client_user')}>
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="client-email">{t('index.email')}</Label>
-                      <Input 
-                        id="client-email" 
-                        type="email" 
-                        placeholder="name@company.com" 
+                      <Input
+                        id="client-email"
+                        type="email"
+                        placeholder="name@company.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -146,16 +155,16 @@ const Index = ({ onLogin }: IndexProps) => {
                           {t('index.forgotpass')}
                         </Button>
                       </div>
-                      <Input 
-                        id="client-password" 
-                        type="password" 
+                      <Input
+                        id="client-password"
+                        type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                       />
                     </div>
-                    <Button type="submit" className="w-full">
-                      {t('index.cliloginbutton')}
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? 'Entrando...' : t('index.cliloginbutton')}
                     </Button>
                   </div>
                 </form>

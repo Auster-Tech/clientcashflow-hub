@@ -1,17 +1,52 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
+// Token store — set by AuthContext, read by request()
+let _getToken: (() => string | null) | null = null;
+let _refreshToken: (() => Promise<string | null>) | null = null;
+let _onUnauthorized: (() => void) | null = null;
+
+export function configureApi(opts: {
+  getToken: () => string | null;
+  refreshToken: () => Promise<string | null>;
+  onUnauthorized: () => void;
+}) {
+  _getToken = opts.getToken;
+  _refreshToken = opts.refreshToken;
+  _onUnauthorized = opts.onUnauthorized;
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetch(url, {
-    headers: {
+  const doRequest = async (token: string | null): Promise<Response> => {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-    ...options,
-  });
+      ...(options?.headers as Record<string, string> | undefined),
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: 'include',
+    });
+  };
+
+  let token = _getToken ? _getToken() : null;
+  let response = await doRequest(token);
+
+  if (response.status === 401 && _refreshToken) {
+    const newToken = await _refreshToken();
+    if (newToken) {
+      response = await doRequest(newToken);
+    } else {
+      if (_onUnauthorized) _onUnauthorized();
+      throw new Error('Session expired. Please log in again.');
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail || `API Error: ${response.status} ${response.statusText}`);
   }
 
   if (response.status === 204) {
@@ -37,6 +72,12 @@ export const clientUsersApi = {
   create: (clientId: number, data: any) => request<any>(`/clients/${clientId}/users/`, { method: 'POST', body: JSON.stringify(data) }),
   update: (clientId: number, userId: number, data: any) => request<any>(`/clients/${clientId}/users/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (clientId: number, userId: number) => request<void>(`/clients/${clientId}/users/${userId}`, { method: 'DELETE' }),
+};
+
+// Auth admin
+export const authAdminApi = {
+  setClientUserPassword: (userId: number, newPassword: string) =>
+    request<void>(`/auth/admin/set-client-user-password?user_id=${userId}&new_password=${encodeURIComponent(newPassword)}`, { method: 'POST' }),
 };
 
 // Account Types
@@ -131,7 +172,6 @@ export const transactionStatusApi = {
 
 // Transactions
 export const transactionsApi = {
-  // Legacy endpoints (by account)
   getAll: () => request<any[]>('/transactions/'),
   getByAccount: (accountId: number) => request<any[]>(`/transactions/${accountId}`),
   getById: (accountId: number, transactionId: number) => request<any>(`/transactions/${accountId}/${transactionId}`),
@@ -139,11 +179,10 @@ export const transactionsApi = {
   update: (accountId: number, transactionId: number, data: any) => request<any>(`/transactions/${accountId}/${transactionId}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (accountId: number, transactionId: number) => request<void>(`/transactions/${accountId}/${transactionId}`, { method: 'DELETE' }),
 
-  // NEW — scoped to client with optional date range
   getByClient: (
     clientId: number,
-    startDate?: string,   // "YYYY-MM-DD"
-    endDate?: string,     // "YYYY-MM-DD"
+    startDate?: string,
+    endDate?: string,
   ) => {
     const qs = new URLSearchParams();
     if (startDate) qs.set('start_date', startDate);
